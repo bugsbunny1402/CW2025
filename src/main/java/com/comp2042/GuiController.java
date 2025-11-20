@@ -51,6 +51,9 @@ public class GuiController implements Initializable {
 
     private final BooleanProperty isGameOver = new SimpleBooleanProperty();
 
+    // NEW: renderer field
+    private Renderer renderer;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         Font.loadFont(getClass().getClassLoader().getResource("digital.ttf").toExternalForm(), 38);
@@ -91,28 +94,20 @@ public class GuiController implements Initializable {
     }
 
     public void initGameView(int[][] boardMatrix, ViewData brick) {
+        // create renderer with same cell size as before
+        this.renderer = new Renderer(BRICK_SIZE);
+
+        // initialize display matrix (keep same dimensions as original code)
         displayMatrix = new Rectangle[boardMatrix.length][boardMatrix[0].length];
-        for (int i = 2; i < boardMatrix.length; i++) {
-            for (int j = 0; j < boardMatrix[i].length; j++) {
-                Rectangle rectangle = new Rectangle(BRICK_SIZE, BRICK_SIZE);
-                rectangle.setFill(Color.TRANSPARENT);
-                displayMatrix[i][j] = rectangle;
-                gamePanel.add(rectangle, j, i - 2);
-            }
-        }
+        // use renderer to populate gamePanel with rectangles
+        renderer.initBackground(gamePanel, boardMatrix, displayMatrix);
 
+        // initialize brick preview rectangles and add to brickPanel
         rectangles = new Rectangle[brick.getBrickData().length][brick.getBrickData()[0].length];
-        for (int i = 0; i < brick.getBrickData().length; i++) {
-            for (int j = 0; j < brick.getBrickData()[i].length; j++) {
-                Rectangle rectangle = new Rectangle(BRICK_SIZE, BRICK_SIZE);
-                rectangle.setFill(getFillColor(brick.getBrickData()[i][j]));
-                rectangles[i][j] = rectangle;
-                brickPanel.add(rectangle, j, i);
-            }
-        }
-        brickPanel.setLayoutX(gamePanel.getLayoutX() + brick.getxPosition() * brickPanel.getVgap() + brick.getxPosition() * BRICK_SIZE);
-        brickPanel.setLayoutY(-42 + gamePanel.getLayoutY() + brick.getyPosition() * brickPanel.getHgap() + brick.getyPosition() * BRICK_SIZE);
+        renderer.initBrickPanel(brickPanel, brick, rectangles);
 
+        // set initial brickPanel position
+        renderer.updateBrickPanelPosition(gamePanel, brickPanel, brick);
 
         timeLine = new Timeline(new KeyFrame(
                 Duration.millis(400),
@@ -122,6 +117,7 @@ public class GuiController implements Initializable {
         timeLine.play();
     }
 
+    // keep original color method for safety (Renderer has same mapping but we keep this in case other code calls it)
     private Paint getFillColor(int i) {
         Paint returnPaint;
         switch (i) {
@@ -156,25 +152,18 @@ public class GuiController implements Initializable {
         return returnPaint;
     }
 
-
     private void refreshBrick(ViewData brick) {
         if (isPause.getValue() == Boolean.FALSE) {
-            brickPanel.setLayoutX(gamePanel.getLayoutX() + brick.getxPosition() * brickPanel.getVgap() + brick.getxPosition() * BRICK_SIZE);
-            brickPanel.setLayoutY(-42 + gamePanel.getLayoutY() + brick.getyPosition() * brickPanel.getHgap() + brick.getyPosition() * BRICK_SIZE);
-            for (int i = 0; i < brick.getBrickData().length; i++) {
-                for (int j = 0; j < brick.getBrickData()[i].length; j++) {
-                    setRectangleData(brick.getBrickData()[i][j], rectangles[i][j]);
-                }
-            }
+            // delegate position update to renderer
+            renderer.updateBrickPanelPosition(gamePanel, brickPanel, brick);
+            // let renderer update rectangle fills for the preview
+            renderer.refreshBrickRectangles(brick, rectangles);
         }
     }
 
     public void refreshGameBackground(int[][] board) {
-        for (int i = 2; i < board.length; i++) {
-            for (int j = 0; j < board[i].length; j++) {
-                setRectangleData(board[i][j], displayMatrix[i][j]);
-            }
-        }
+        // delegate to renderer for updating background rectangles
+        renderer.refreshBackgroundRectangles(board, displayMatrix);
     }
 
     private void setRectangleData(int color, Rectangle rectangle) {
