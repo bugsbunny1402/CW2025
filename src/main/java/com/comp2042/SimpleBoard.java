@@ -6,6 +6,22 @@ import com.comp2042.logic.bricks.RandomBrickGenerator;
 
 import java.awt.*;
 
+/**
+ * SimpleBoard
+ *
+ * This class represents the main game board for the game.
+ * It is responsible for :
+ * - Storing the current game matrix (placed bricks and empty cells)
+ * - Tracking the current falling brick and its offset on the board
+ * - Creating new bricks via a BrickGenerator
+ * - Checking collisions and merging bricks into the background matrix
+ * - Clearing full rows and updating the score
+ *
+ * The board itself is purely logical (no rendering). The GUI layers
+ * (GuiController + Renderer) reads state from this class and displays it.
+ *
+ * This class is used through the Board interface by GameController.
+ */
 public class SimpleBoard implements Board {
 
     private final int width;
@@ -111,13 +127,20 @@ public class SimpleBoard implements Board {
         return clearRow;
 
     }
-
+    /**
+     * Returns the current Score object for the board.
+     */
     @Override
     public Score getScore() {
         return score;
     }
 
-
+    /**
+     * Reset the board to its initial state for a new game:
+     * - Clears the game matrix
+     * - Resets the score
+     * - Creates a new current brick
+     */
     @Override
     public void newGame() {
         currentGameMatrix = new int[width][height];
