@@ -5,6 +5,17 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.stream.Collectors;
+/**
+ * Utility class with matrix operations used by the Tetris game.
+ *
+ * Responsibilities:
+ * - Detecting intersection between the current falling brick and the board
+ * - Merging a brick into the background matrix when it lands
+ * - Checking for full rows, clearing them, and calculating score bonus
+ * - Deep copying matrices and lists of matrices
+ *
+ * This class is static-only and is not meant to be instantiated.
+ */
 
 public class MatrixOperations {
 
@@ -13,7 +24,7 @@ public class MatrixOperations {
     private MatrixOperations(){
 
     }
-
+// Check if a brick placed at (x.y) would intersect with non-empty cells in the board matrix.
     public static boolean intersect(final int[][] matrix, final int[][] brick, int x, int y) {
         for (int i = 0; i < brick.length; i++) {
             for (int j = 0; j < brick[i].length; j++) {
@@ -28,11 +39,15 @@ public class MatrixOperations {
     }
 
     private static boolean checkOutOfBound(int[][] matrix, int targetX, int targetY) {
-        boolean returnValue = true;
-        if (targetX >= 0 && targetY < matrix.length && targetX < matrix[targetY].length) {
-            returnValue = false;
+        // outside vertically
+        if (targetY < 0 || targetY >= matrix.length) {
+            return true;
         }
-        return returnValue;
+        // outside horizontally
+        if (targetX < 0 || targetX >= matrix[targetY].length) {
+            return true;
+        }
+        return false;
     }
 
     public static int[][] copy(int[][] original) {
@@ -45,7 +60,7 @@ public class MatrixOperations {
         }
         return myInt;
     }
-
+// Merge the brick into the filledFields matrix at position (x.y) and return a new merged matrix.
     public static int[][] merge(int[][] filledFields, int[][] brick, int x, int y) {
         int[][] copy = copy(filledFields);
         for (int i = 0; i < brick.length; i++) {
@@ -59,7 +74,7 @@ public class MatrixOperations {
         }
         return copy;
     }
-
+// Check for full rows, clear them and return a ClearRow object with the new matrix and bonus score
     public static ClearRow checkRemoving(final int[][] matrix) {
         int[][] tmp = new int[matrix.length][matrix[0].length];
         Deque<int[]> newRows = new ArrayDeque<>();
