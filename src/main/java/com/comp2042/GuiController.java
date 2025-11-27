@@ -12,6 +12,8 @@ import javafx.fxml.Initializable;
 import javafx.scene.Group;
 import javafx.scene.control.Label;
 import javafx.scene.effect.Reflection;
+import javafx.scene.effect.Glow;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
@@ -215,10 +217,26 @@ public class GuiController implements Initializable {
     }
 
     private void setRectangleData(int color, Rectangle rectangle) {
-        rectangle.setFill(getFillColor(color));
+        Paint fill = getFillColor(color);
+        rectangle.setFill(fill);
         rectangle.setArcHeight(9);
         rectangle.setArcWidth(9);
+
+        if (color == 0) {
+            rectangle.setEffect(null);
+        } else {
+            DropShadow shadow = new DropShadow();
+            shadow.setRadius(8);
+            shadow.setSpread(0.3);
+            shadow.setColor(Color.color(0, 0, 0, 0.5));
+
+            Glow glow = new Glow(0.3);
+            glow.setInput(shadow);
+
+            rectangle.setEffect(glow);
+        }
     }
+
 
     private void moveDown(MoveEvent event) {
         if (!isPause.get()) {
