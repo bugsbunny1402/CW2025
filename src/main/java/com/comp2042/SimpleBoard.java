@@ -3,6 +3,7 @@ package com.comp2042;
 import com.comp2042.logic.bricks.Brick;
 import com.comp2042.logic.bricks.BrickGenerator;
 import com.comp2042.logic.bricks.RandomBrickGenerator;
+import javafx.scene.control.Label;
 
 import java.awt.*;
 
@@ -31,6 +32,7 @@ public class SimpleBoard implements Board {
     private int[][] currentGameMatrix;
     private Point currentOffset;
     private final Score score;
+    private Label pauseLabel;
 
     public SimpleBoard(int width, int height) {
         this.width = width;
