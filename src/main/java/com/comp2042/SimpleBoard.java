@@ -31,11 +31,8 @@ public class SimpleBoard implements Board {
     private int[][] currentGameMatrix;
     private Point currentOffset;
     private final Score score;
-
-    // START: Level Progression Fields
     private int totalLinesCleared = 0;
     private int currentLevel = 1;
-    // END: Level Progression Fields
 
     // Removed: private Label pauseLabel; and the corresponding import.
 
@@ -221,7 +218,6 @@ public class SimpleBoard implements Board {
         currentGameMatrix = new int[width][height];
         score.reset();
 
-        // RESET LEVEL STATE
         totalLinesCleared = 0;
         currentLevel = 1;
 

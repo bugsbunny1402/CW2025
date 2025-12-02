@@ -61,6 +61,10 @@ public class GuiController implements Initializable {
 
     private Label pauseLabel;
 
+    @FXML private Label scoreLabel;
+
+    @FXML private Label levelLabel;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         Font.loadFont(getClass().getClassLoader().getResource("digital.ttf").toExternalForm(), 38);
@@ -224,7 +228,7 @@ public class GuiController implements Initializable {
 
             for (int i = 0; i < rectangles.length; i++) {
                 for (int j = 0; j < rectangles[i].length; j++) {
-                    setRectangleData(0, rectangles[i][j]); // Set to TRANSPARENT (color 0)
+                    setRectangleData(0, rectangles[i][j]);
                 }
             }
 
@@ -306,8 +310,28 @@ public class GuiController implements Initializable {
         this.eventListener = eventListener;
     }
 
-    public void bindScore(IntegerProperty integerProperty) {
-        // Intentionally left empty – binding handled elsewhere if needed
+    public void bindScore(IntegerProperty scoreProperty) {
+        scoreLabel.textProperty().bind(scoreProperty.asString());
+    }
+
+    public void setLevel(int level) {
+        if (levelLabel != null) {
+            levelLabel.setText(String.valueOf(level));
+        }
+    }
+
+    public void setGameSpeed(long speedMillis) {
+        if (timeLine != null) {
+            timeLine.stop();
+        }
+        timeLine = new Timeline(new KeyFrame(
+                Duration.millis(speedMillis),
+                ae -> moveDown(new MoveEvent(EventType.DOWN, EventSource.THREAD))
+        ));
+        timeLine.setCycleCount(Timeline.INDEFINITE);
+        if (isPause.getValue() == Boolean.FALSE && isGameOver.getValue() == Boolean.FALSE) {
+            timeLine.play();
+        }
     }
 
     public void gameOver() {
