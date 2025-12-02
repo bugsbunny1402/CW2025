@@ -22,5 +22,11 @@ public interface Board {
 
     Score getScore();
 
+    /**
+     * Instantly drops the current brick to its lowest possible position.
+     * @return The number of rows the brick was moved down.
+     */
+    int hardDrop();
+
     void newGame();
 }

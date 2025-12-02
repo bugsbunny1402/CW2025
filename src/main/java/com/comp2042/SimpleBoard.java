@@ -137,6 +137,28 @@ public class SimpleBoard implements Board {
         return score;
     }
 
+    @Override
+    public int hardDrop() {
+        int distanceMoved = 0;
+
+        //Start at the current position
+        Point finalOffset = new Point(currentOffset);
+        int[][] currentShape = brickRotator.getCurrentShape();
+        int[][] currentMatrix = MatrixOperations.copy(currentGameMatrix); // Copy the background matrix
+
+        // Keep moving down one step at a time until the next step results in a conflict
+        while (!MatrixOperations.intersect(currentMatrix, currentShape, (int) finalOffset.getX(), (int) finalOffset.getY() + 1)) {
+            finalOffset.translate(0, 1);
+            distanceMoved++;
+        }
+
+        if (distanceMoved > 0) {
+            currentOffset = finalOffset; // Update the brick's position to its landing spot
+        }
+
+        return distanceMoved;
+    }
+
     /**
      * Reset the board to its initial state for a new game:
      * - Clears the game matrix
