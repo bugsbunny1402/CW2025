@@ -3,7 +3,6 @@ package com.comp2042;
 import com.comp2042.logic.bricks.Brick;
 import com.comp2042.logic.bricks.BrickGenerator;
 import com.comp2042.logic.bricks.RandomBrickGenerator;
-import javafx.scene.control.Label;
 
 import java.awt.*;
 
@@ -32,7 +31,30 @@ public class SimpleBoard implements Board {
     private int[][] currentGameMatrix;
     private Point currentOffset;
     private final Score score;
-    private Label pauseLabel;
+
+    // START: Level Progression Fields
+    private int totalLinesCleared = 0;
+    private int currentLevel = 1;
+    // END: Level Progression Fields
+
+    // Removed: private Label pauseLabel; and the corresponding import.
+
+    /**
+     * Calculates the lowest possible offset for the current brick without collision.
+     * This is used to draw the ghost piece.
+     * @return A Point representing the landing spot (x, y).
+     */
+    private Point calculateGhostOffset() {
+        Point ghostOffset = new Point(currentOffset);
+        int[][] currentShape = brickRotator.getCurrentShape();
+        int[][] currentMatrix = MatrixOperations.copy(currentGameMatrix); // Get a snapshot of the board
+
+        // Continuously move down by 1 until the next move causes an intersection
+        while (!MatrixOperations.intersect(currentMatrix, currentShape, (int) ghostOffset.getX(), (int) ghostOffset.getY() + 1)) {
+            ghostOffset.translate(0, 1);
+        }
+        return ghostOffset;
+    }
 
     public SimpleBoard(int width, int height) {
         this.width = width;
@@ -42,6 +64,16 @@ public class SimpleBoard implements Board {
         brickRotator = new BrickRotator();
         score = new Score();
     }
+
+    // START: Level Progression Getters
+    public int getCurrentLevel() {
+        return currentLevel;
+    }
+
+    public int getTotalLinesCleared() {
+        return totalLinesCleared;
+    }
+    // END: Level Progression Getters
 
     @Override
     public boolean moveBrickDown() {
@@ -103,7 +135,7 @@ public class SimpleBoard implements Board {
     public boolean createNewBrick() {
         Brick currentBrick = brickGenerator.getBrick();
         brickRotator.setBrick(currentBrick);
-        currentOffset = new Point(4, 10);
+        currentOffset = new Point(4, 0);
         return MatrixOperations.intersect(currentGameMatrix, brickRotator.getCurrentShape(), (int) currentOffset.getX(), (int) currentOffset.getY());
     }
 
@@ -114,7 +146,15 @@ public class SimpleBoard implements Board {
 
     @Override
     public ViewData getViewData() {
-        return new ViewData(brickRotator.getCurrentShape(), (int) currentOffset.getX(), (int) currentOffset.getY(), brickGenerator.getNextBrick().getShapeMatrix().get(0));
+        Point ghost = calculateGhostOffset();
+        return new ViewData(
+                brickRotator.getCurrentShape(),
+                (int) currentOffset.getX(),
+                (int) currentOffset.getY(),
+                brickGenerator.getNextBrick().getShapeMatrix().get(0),
+                (int) ghost.getX(),
+                (int) ghost.getY()
+        );
     }
 
     @Override
@@ -126,9 +166,20 @@ public class SimpleBoard implements Board {
     public ClearRow clearRows() {
         ClearRow clearRow = MatrixOperations.checkRemoving(currentGameMatrix);
         currentGameMatrix = clearRow.getNewMatrix();
-        return clearRow;
 
+        int linesRemoved = clearRow.getLinesRemoved();
+        if (linesRemoved > 0) {
+            totalLinesCleared += linesRemoved;
+            // Level up for every 10 lines cleared
+            int newLevel = (totalLinesCleared / 10) + 1;
+            if (newLevel > currentLevel) {
+                currentLevel = newLevel;
+            }
+        }
+
+        return clearRow;
     }
+
     /**
      * Returns the current Score object for the board.
      */
@@ -169,6 +220,11 @@ public class SimpleBoard implements Board {
     public void newGame() {
         currentGameMatrix = new int[width][height];
         score.reset();
+
+        // RESET LEVEL STATE
+        totalLinesCleared = 0;
+        currentLevel = 1;
+
         createNewBrick();
     }
 }

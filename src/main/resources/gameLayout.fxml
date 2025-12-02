@@ -15,6 +15,11 @@
         </center>
     </BorderPane>
 
+    <VBox layoutX="250.0" layoutY="20.0" spacing="10" alignment="TOP_CENTER">
+        <Label styleClass="nextBrickLabel" text="NEXT"/>
+        <GridPane fx:id="nextBrickPanel" hgap="1" vgap="1" styleClass="nextBrick"/>
+    </VBox>
+
     <Group fx:id="groupNotification" layoutX="14" layoutY="203">
         <VBox alignment="CENTER">
             <GameOverPanel fx:id="gameOverPanel"/>
