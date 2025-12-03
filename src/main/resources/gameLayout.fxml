@@ -24,9 +24,15 @@
         </VBox>
 
         <VBox spacing="5" alignment="CENTER">
+            <Label text="BEST" styleClass="scoreTitle"/>
+            <Label fx:id="highScoreLabel" text="0" styleClass="scoreValue"/>
+        </VBox>
+
+        <VBox spacing="5" alignment="CENTER">
             <Label text="SCORE" styleClass="scoreTitle"/>
             <Label fx:id="scoreLabel" text="0" styleClass="scoreValue"/>
         </VBox>
+
         <VBox spacing="5" alignment="CENTER">
             <Label text="LEVEL" styleClass="scoreTitle"/>
             <Label fx:id="levelLabel" text="1" styleClass="scoreValue"/>

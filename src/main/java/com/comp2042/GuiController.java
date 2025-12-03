@@ -65,6 +65,8 @@ public class GuiController implements Initializable {
 
     @FXML private Label levelLabel;
 
+    @FXML private Label highScoreLabel;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         Font.loadFont(getClass().getClassLoader().getResource("digital.ttf").toExternalForm(), 38);
@@ -137,6 +139,12 @@ public class GuiController implements Initializable {
         reflection.setFraction(0.8);
         reflection.setTopOpacity(0.9);
         reflection.setTopOffset(-12);
+
+        // ADDED: Load High Score on startup
+        int best = HighScoreManager.loadHighScore();
+        if (highScoreLabel != null) {
+            highScoreLabel.setText(String.valueOf(best));
+        }
     }
 
     public void initGameView(int[][] boardMatrix, ViewData brick) {
@@ -218,12 +226,10 @@ public class GuiController implements Initializable {
     }
 
     private void refreshBrick(ViewData brick) {
-        // FIXED: Corrected boolean logic. Now updates when NOT paused.
         if (!isPause.get()) {
             brickPanel.setLayoutX(gamePanel.getLayoutX() + brick.getxPosition() * brickPanel.getVgap() + brick.getxPosition() * BRICK_SIZE);
             brickPanel.setLayoutY(-42 + gamePanel.getLayoutY() + brick.getyPosition() * brickPanel.getHgap() + brick.getyPosition() * BRICK_SIZE);
 
-            // FIXED: Now getting the current BRICK data, not the NEXT brick data.
             int[][] currentBrickData = brick.getBrickData();
 
             for (int i = 0; i < rectangles.length; i++) {
@@ -246,7 +252,7 @@ public class GuiController implements Initializable {
             for (int i = 0; i < nextBrickData.length; i++) {
                 for (int j = 0; j < nextBrickData[i].length; j++) {
                     Rectangle rectangle = new Rectangle(BRICK_SIZE, BRICK_SIZE);
-                    rectangle.setFill(Color.TRANSPARENT); // Ensure initial transparency
+                    rectangle.setFill(Color.TRANSPARENT);
                     nextBrickDisplay[i][j] = rectangle;
                     nextBrickPanel.add(rectangle, j, i);
                 }
@@ -291,7 +297,6 @@ public class GuiController implements Initializable {
 
 
     private void moveDown(MoveEvent event) {
-        // FIXED: Corrected boolean logic.
         if (!isPause.get()) {
             DownData downData = eventListener.onDownEvent(event);
             if (downData.getClearRow() != null && downData.getClearRow().getLinesRemoved() > 0) {
@@ -341,6 +346,22 @@ public class GuiController implements Initializable {
         gameOverPanel.setVisible(true);
         isGameOver.set(true);
         hidePauseOverlay();
+
+        // ADDED: Check and Save High Score
+        try {
+            int currentScore = Integer.parseInt(scoreLabel.getText());
+            int currentBest = HighScoreManager.loadHighScore();
+
+            if (currentScore > currentBest) {
+                HighScoreManager.saveHighScore(currentScore);
+                if (highScoreLabel != null) {
+                    highScoreLabel.setText(String.valueOf(currentScore));
+                }
+            }
+        } catch (NumberFormatException e) {
+            // Handle parsing error if score label is not purely numeric
+            System.err.println("Error parsing score for high score check");
+        }
     }
 
     public void newGame(ActionEvent actionEvent) {
