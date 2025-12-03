@@ -16,11 +16,7 @@ import java.awt.*;
  * - Creating new bricks via a BrickGenerator
  * - Checking collisions and merging bricks into the background matrix
  * - Clearing full rows and updating the score
- *
- * The board itself is purely logical (no rendering). The GUI layers
- * (GuiController + Renderer) reads state from this class and displays it.
- *
- * This class is used through the Board interface by GameController.
+ * - Managing the Hold Piece mechanic
  */
 public class SimpleBoard implements Board {
 
@@ -34,24 +30,10 @@ public class SimpleBoard implements Board {
     private int totalLinesCleared = 0;
     private int currentLevel = 1;
 
-    // Removed: private Label pauseLabel; and the corresponding import.
-
-    /**
-     * Calculates the lowest possible offset for the current brick without collision.
-     * This is used to draw the ghost piece.
-     * @return A Point representing the landing spot (x, y).
-     */
-    private Point calculateGhostOffset() {
-        Point ghostOffset = new Point(currentOffset);
-        int[][] currentShape = brickRotator.getCurrentShape();
-        int[][] currentMatrix = MatrixOperations.copy(currentGameMatrix); // Get a snapshot of the board
-
-        // Continuously move down by 1 until the next move causes an intersection
-        while (!MatrixOperations.intersect(currentMatrix, currentShape, (int) ghostOffset.getX(), (int) ghostOffset.getY() + 1)) {
-            ghostOffset.translate(0, 1);
-        }
-        return ghostOffset;
-    }
+    // Hold Piece Fields
+    private Brick holdBrick = null;
+    private Brick currentBrick; // Promoted to field to allow swapping
+    private boolean hasHeldThisTurn = false;
 
     public SimpleBoard(int width, int height) {
         this.width = width;
@@ -62,7 +44,17 @@ public class SimpleBoard implements Board {
         score = new Score();
     }
 
-    // START: Level Progression Getters
+    private Point calculateGhostOffset() {
+        Point ghostOffset = new Point(currentOffset);
+        int[][] currentShape = brickRotator.getCurrentShape();
+        int[][] currentMatrix = MatrixOperations.copy(currentGameMatrix);
+
+        while (!MatrixOperations.intersect(currentMatrix, currentShape, (int) ghostOffset.getX(), (int) ghostOffset.getY() + 1)) {
+            ghostOffset.translate(0, 1);
+        }
+        return ghostOffset;
+    }
+
     public int getCurrentLevel() {
         return currentLevel;
     }
@@ -70,7 +62,47 @@ public class SimpleBoard implements Board {
     public int getTotalLinesCleared() {
         return totalLinesCleared;
     }
-    // END: Level Progression Getters
+
+    /**
+     * Swaps the current brick with the held brick.
+     * If no brick is held, the current brick is moved to hold and a new one is generated.
+     */
+    public void swapHoldBrick() {
+        if (hasHeldThisTurn) {
+            return; // Prevent multiple swaps in one turn
+        }
+
+        if (holdBrick == null) {
+            // First hold: Store current, spawn next immediately
+            holdBrick = currentBrick;
+
+            // Manually generate next brick to avoid resetting hasHeldThisTurn
+            currentBrick = brickGenerator.getBrick();
+            brickRotator.setBrick(currentBrick);
+            currentOffset = new Point(4, 0);
+        } else {
+            // Swap current and hold
+            Brick temp = currentBrick;
+            currentBrick = holdBrick;
+            holdBrick = temp;
+
+            brickRotator.setBrick(currentBrick);
+            currentOffset = new Point(4, 0);
+        }
+
+        hasHeldThisTurn = true; // Lock holding until next piece spawns
+    }
+
+    @Override
+    public boolean createNewBrick() {
+        currentBrick = brickGenerator.getBrick(); // Use the class field
+        brickRotator.setBrick(currentBrick);
+        currentOffset = new Point(4, 0);
+
+        hasHeldThisTurn = false; // Reset hold flag for the new turn
+
+        return MatrixOperations.intersect(currentGameMatrix, brickRotator.getCurrentShape(), (int) currentOffset.getX(), (int) currentOffset.getY());
+    }
 
     @Override
     public boolean moveBrickDown() {
@@ -85,7 +117,6 @@ public class SimpleBoard implements Board {
             return true;
         }
     }
-
 
     @Override
     public boolean moveBrickLeft() {
@@ -129,14 +160,6 @@ public class SimpleBoard implements Board {
     }
 
     @Override
-    public boolean createNewBrick() {
-        Brick currentBrick = brickGenerator.getBrick();
-        brickRotator.setBrick(currentBrick);
-        currentOffset = new Point(4, 0);
-        return MatrixOperations.intersect(currentGameMatrix, brickRotator.getCurrentShape(), (int) currentOffset.getX(), (int) currentOffset.getY());
-    }
-
-    @Override
     public int[][] getBoardMatrix() {
         return currentGameMatrix;
     }
@@ -144,13 +167,18 @@ public class SimpleBoard implements Board {
     @Override
     public ViewData getViewData() {
         Point ghost = calculateGhostOffset();
+
+        // Prepare hold data (null if empty)
+        int[][] holdData = (holdBrick != null) ? holdBrick.getShapeMatrix().get(0) : null;
+
         return new ViewData(
                 brickRotator.getCurrentShape(),
                 (int) currentOffset.getX(),
                 (int) currentOffset.getY(),
                 brickGenerator.getNextBrick().getShapeMatrix().get(0),
                 (int) ghost.getX(),
-                (int) ghost.getY()
+                (int) ghost.getY(),
+                holdData // Pass Hold Data to View
         );
     }
 
@@ -167,19 +195,14 @@ public class SimpleBoard implements Board {
         int linesRemoved = clearRow.getLinesRemoved();
         if (linesRemoved > 0) {
             totalLinesCleared += linesRemoved;
-            // Level up for every 10 lines cleared
             int newLevel = (totalLinesCleared / 10) + 1;
             if (newLevel > currentLevel) {
                 currentLevel = newLevel;
             }
         }
-
         return clearRow;
     }
 
-    /**
-     * Returns the current Score object for the board.
-     */
     @Override
     public Score getScore() {
         return score;
@@ -188,39 +211,29 @@ public class SimpleBoard implements Board {
     @Override
     public int hardDrop() {
         int distanceMoved = 0;
-
-        //Start at the current position
         Point finalOffset = new Point(currentOffset);
         int[][] currentShape = brickRotator.getCurrentShape();
-        int[][] currentMatrix = MatrixOperations.copy(currentGameMatrix); // Copy the background matrix
+        int[][] currentMatrix = MatrixOperations.copy(currentGameMatrix);
 
-        // Keep moving down one step at a time until the next step results in a conflict
         while (!MatrixOperations.intersect(currentMatrix, currentShape, (int) finalOffset.getX(), (int) finalOffset.getY() + 1)) {
             finalOffset.translate(0, 1);
             distanceMoved++;
         }
 
         if (distanceMoved > 0) {
-            currentOffset = finalOffset; // Update the brick's position to its landing spot
+            currentOffset = finalOffset;
         }
-
         return distanceMoved;
     }
 
-    /**
-     * Reset the board to its initial state for a new game:
-     * - Clears the game matrix
-     * - Resets the score
-     * - Creates a new current brick
-     */
     @Override
     public void newGame() {
         currentGameMatrix = new int[width][height];
         score.reset();
-
         totalLinesCleared = 0;
         currentLevel = 1;
-
+        holdBrick = null; // Reset hold
+        hasHeldThisTurn = false;
         createNewBrick();
     }
 }

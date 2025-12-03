@@ -1,5 +1,7 @@
 package com.comp2042;
 
+import javax.swing.text.View;
+
 public class GameController implements InputEventListener {
 
     private Board board = new SimpleBoard(25, 10);
@@ -84,6 +86,14 @@ public class GameController implements InputEventListener {
     }
 
     @Override
+    public ViewData onHoldEvent(MoveEvent event) {
+        if (board instanceof SimpleBoard) {
+            ((SimpleBoard) board).swapHoldBrick();
+        }
+        return board.getViewData();
+    }
+
+    @Override
     public void createNewGame() {
         board.newGame();
         viewGuiController.refreshGameBackground(board.getBoardMatrix());
@@ -101,7 +111,6 @@ public class GameController implements InputEventListener {
             // Calculate new speed: Base 400ms, faster by 30ms per level, capped at 100ms
             long newSpeed = 400 - ((long) (currentLevel - 1) * 30);
             newSpeed = Math.max(newSpeed, 100);
-
             viewGuiController.setGameSpeed(newSpeed);
         }
     }

@@ -108,6 +108,11 @@ public class GuiController implements Initializable {
                         moveDown(new MoveEvent(EventType.DOWN, EventSource.USER));
                         keyEvent.consume();
                     }
+
+                    if (keyEvent.getCode() == KeyCode.C) {
+                        refreshBrick(eventListener.onHoldEvent(new MoveEvent(EventType.HOLD, EventSource.USER)));
+                        keyEvent.consume();
+                    }
                 }
 
                 // Start a new game

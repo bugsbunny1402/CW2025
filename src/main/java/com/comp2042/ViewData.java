@@ -8,15 +8,17 @@ public final class ViewData {
     private final int[][] nextBrickData;
     private final int ghostXPosition;
     private final int ghostYPosition;
+    private final int[][] holdBrickData; // New Field
 
-
-    public ViewData(int[][] brickData, int xPosition, int yPosition, int[][] nextBrickData, int ghostXPosition, int ghostYPosition) {
+    // Updated Constructor
+    public ViewData(int[][] brickData, int xPosition, int yPosition, int[][] nextBrickData, int ghostXPosition, int ghostYPosition, int[][] holdBrickData) {
         this.brickData = brickData;
         this.xPosition = xPosition;
         this.yPosition = yPosition;
         this.nextBrickData = nextBrickData;
         this.ghostXPosition = ghostXPosition;
         this.ghostYPosition = ghostYPosition;
+        this.holdBrickData = holdBrickData;
     }
 
     public int[][] getBrickData() {
@@ -41,5 +43,11 @@ public final class ViewData {
 
     public int getGhostYPosition() {
         return ghostYPosition;
+    }
+
+    public int[][] getHoldBrickData() {
+        // Return null if no brick is held
+        if (holdBrickData == null) return null;
+        return MatrixOperations.copy(holdBrickData);
     }
 }
