@@ -7,10 +7,13 @@ public class GameController implements InputEventListener {
     private Board board = new SimpleBoard(25, 10);
 
     private final GuiController viewGuiController;
+    private final SoundManager soundManager;
 
     public GameController(GuiController c) {
         viewGuiController = c;
         board.createNewBrick();
+        soundManager = new SoundManager();
+        soundManager.startMusic();
         viewGuiController.setEventListener(this);
         viewGuiController.initGameView(board.getBoardMatrix(), board.getViewData());
         viewGuiController.bindScore(board.getScore().scoreProperty());
@@ -25,9 +28,13 @@ public class GameController implements InputEventListener {
             clearRow = board.clearRows();
             if (clearRow.getLinesRemoved() > 0) {
                 board.getScore().add(clearRow.getScoreBonus());
+                soundManager.playClear();
                 updateLevelAndSpeed(); // Reuse logic
             }
             if (board.createNewBrick()) {
+                if (soundManager != null) {
+                    soundManager.playGameOver();
+                }
                 viewGuiController.gameOver();
             }
 
