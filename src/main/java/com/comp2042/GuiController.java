@@ -69,7 +69,6 @@ public class GuiController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        Font.loadFont(getClass().getClassLoader().getResource("digital.ttf").toExternalForm(), 38);
         gamePanel.setFocusTraversable(true);
         gamePanel.requestFocus();
 
@@ -145,7 +144,6 @@ public class GuiController implements Initializable {
         reflection.setTopOpacity(0.9);
         reflection.setTopOffset(-12);
 
-        // ADDED: Load High Score on startup
         int best = HighScoreManager.loadHighScore();
         if (highScoreLabel != null) {
             highScoreLabel.setText(String.valueOf(best));
