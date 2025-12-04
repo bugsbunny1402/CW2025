@@ -1,92 +1,78 @@
 package com.comp2042.logic.bricks;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.*;
 
 /**
  * RandomBrickGenerator
  *
- * This class is an implementation of {@link BrickGenerator} that selects
- * random bricks from the predefined brick list.
- *
- * Responsibilities:
- * - Maintain a queue of upcoming bricks (nextBricks)
- * - Provide the current brick when requested
- * - Ensure there is always at least one brick pre-generated
+ * Refactored to use the "7-Bag Randomizer" system (Standard Tetris RNG).
  *
  * Behaviour:
- * - Stores all seven standard Tetris bricks (I, J, L, O, S, T, Z)
- * - Uses ThreadLocalRandom to pick bricks uniformly at random
- * - Maintains a queue of two bricks: current brick + next preview brick
+ * - Instead of picking purely random numbers (which can result in drought/flood),
+ * this generator puts one of each of the 7 pieces into a "bag".
+ * - The bag is shuffled.
+ * - Pieces are drawn from the bag until it is empty.
+ * - When empty, a new bag of 7 distinct pieces is created and shuffled.
  *
- * This generator does NOT handle movement, rotation, or collision —
- * these responsibilities belong to SimpleBoard, BrickRotator and
- * MatrixOperations.
+ * This ensures fair gameplay where players are guaranteed to see every piece
+ * at least once every 7 turns.
  */
-
 public class RandomBrickGenerator implements BrickGenerator {
 
-    private final List<Brick> brickList;
-    // All possible brick shapes available in the game (the 7 Tetris pieces)
+    private final List<Brick> brickPrototypes; // Templates for the 7 bricks
+    private final Deque<Brick> brickBag = new ArrayDeque<>(); // The "Bag"
+    private final Deque<Brick> nextBricks = new ArrayDeque<>(); // The preview queue
 
-    private final Deque<Brick> nextBricks = new ArrayDeque<>();
-    // Queue storing the current and next bricks.
-    // nextBricks.peek() = next preview brick
-    // nextBricks.poll() = brick to spawn now
+    public RandomBrickGenerator() {
+        brickPrototypes = new ArrayList<>();
+        brickPrototypes.add(new IBrick());
+        brickPrototypes.add(new JBrick());
+        brickPrototypes.add(new LBrick());
+        brickPrototypes.add(new OBrick());
+        brickPrototypes.add(new SBrick());
+        brickPrototypes.add(new TBrick());
+        brickPrototypes.add(new ZBrick());
+
+        // Initialize by filling the preview queue
+        // We need at least 2 bricks: one to play immediately, one for "Next" preview
+        while (nextBricks.size() < 2) {
+            nextBricks.add(getNextFromBag());
+        }
+    }
 
     /**
-     * Creates the brick list containing all Tetris pieces
-     * and pre-populates the queue with two random bricks.
-     *
-     * This guarantees the game always has:
-     * - a current brick ready,
-     * - a next preview brick available.
+     * Pulls the next brick from the bag.
+     * If the bag is empty, refilled it with a new shuffled set of 7 bricks.
      */
-    public RandomBrickGenerator() {
-        brickList = new ArrayList<>();
-        brickList.add(new IBrick());
-        brickList.add(new JBrick());
-        brickList.add(new LBrick());
-        brickList.add(new OBrick());
-        brickList.add(new SBrick());
-        brickList.add(new TBrick());
-        brickList.add(new ZBrick());
-        nextBricks.add(brickList.get(ThreadLocalRandom.current().nextInt(brickList.size())));
-        nextBricks.add(brickList.get(ThreadLocalRandom.current().nextInt(brickList.size())));
+    private Brick getNextFromBag() {
+        if (brickBag.isEmpty()) {
+            List<Brick> newBag = new ArrayList<>(brickPrototypes);
+            Collections.shuffle(newBag); // Shuffle the 7 pieces
+            brickBag.addAll(newBag);
+        }
+        return brickBag.poll();
     }
 
     /**
      * Returns the next brick to be used in the game.
-     * Also ensures the queue always contains at least one more brick.
-     *
-     * @return the brick to spawn on the board
+     * Ensures the preview queue stays populated.
      */
     @Override
     public Brick getBrick() {
         if (nextBricks.size() <= 1) {
-            nextBricks.add(brickList.get(ThreadLocalRandom.current().nextInt(brickList.size())));
+            nextBricks.add(getNextFromBag());
         }
         return nextBricks.poll();
     }
 
     /**
-     * Returns the upcoming brick without removing it from the queue.
-     *
-     * Used for the "next brick" preview display in the GUI.
-     *
-     * @return the next brick, or null if queue is empty (should not happen)
+     * Returns the upcoming brick for the preview window.
      */
     @Override
     public Brick getNextBrick() {
-
-        // Defensive programming – queue should never be empty
         if (nextBricks.isEmpty()) {
-            nextBricks.add(brickList.get(ThreadLocalRandom.current().nextInt(brickList.size())));
+            nextBricks.add(getNextFromBag());
         }
-
         return nextBricks.peek();
     }
 }
