@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+<?import java.net.URL?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.comp2042.StartMenuController"
+      alignment="CENTER"
+      spacing="40"
+      styleClass="root"
+      prefWidth="450" prefHeight="550">
+
+    <Label text="TETRIS" styleClass="menuTitle"/>
+
+    <VBox spacing="20" alignment="CENTER">
+        <Button text="PLAY GAME" onAction="#onStartGame" styleClass="menuButton"/>
+        <Button text="EXIT" onAction="#onExitGame" styleClass="menuButton"/>
+    </VBox>
+
+    <stylesheets>
+        <URL value="@window_style.css"/>
+    </stylesheets>
+</VBox>
