@@ -1,26 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <?import com.comp2042.GameOverPanel?>
 <?import javafx.scene.Group?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import java.net.URL?>
 
-<Pane fx:controller="com.comp2042.GuiController" xmlns:fx="http://javafx.com/fxml">
+<Pane fx:controller="com.comp2042.GuiController" xmlns:fx="http://javafx.com/fxml" prefWidth="450" prefHeight="550">
 
-    <BorderPane styleClass="gameBoard" fx:id="gameBoard">
-        <GridPane fx:id="brickPanel" vgap="1" hgap="1"/>
+    <VBox layoutX="25.0" layoutY="10.0" spacing="5" alignment="TOP_CENTER">
+        <Label styleClass="nextBrickLabel" text="HOLD"/>
+        <GridPane fx:id="holdBrickPanel" hgap="1" vgap="1" styleClass="nextBrick" alignment="CENTER"/>
+    </VBox>
+
+    <BorderPane styleClass="gameBoard" fx:id="gameBoard" layoutX="125.0" layoutY="30.0">
         <center>
-            <GridPane fx:id="gamePanel" hgap="1" vgap="1" layoutY="30" layoutX="40"/>
+            <GridPane fx:id="gamePanel" hgap="1" vgap="1"/>
         </center>
     </BorderPane>
 
-    <VBox layoutX="255.0" layoutY="20.0" spacing="20" alignment="TOP_CENTER">
+    <GridPane fx:id="brickPanel" vgap="1" hgap="1" layoutX="125.0" layoutY="30.0" mouseTransparent="true"/>
 
-        <VBox spacing="10" alignment="TOP_CENTER">
+    <VBox layoutX="345.0" layoutY="10.0" spacing="20" alignment="TOP_CENTER">
+
+        <VBox spacing="5" alignment="TOP_CENTER">
             <Label styleClass="nextBrickLabel" text="NEXT"/>
-            <GridPane fx:id="nextBrickPanel" hgap="1" vgap="1" styleClass="nextBrick"/>
+            <GridPane fx:id="nextBrickPanel" hgap="1" vgap="1" styleClass="nextBrick" alignment="CENTER"/>
         </VBox>
 
         <VBox spacing="5" alignment="CENTER">
@@ -40,7 +49,14 @@
 
     </VBox>
 
-    <Group fx:id="groupNotification" layoutX="45" layoutY="203">
+    <StackPane fx:id="pauseMenu" visible="false" layoutX="125.0" layoutY="30.0" prefWidth="200" prefHeight="400" styleClass="pauseBackground">
+        <VBox alignment="CENTER" spacing="20">
+            <Label text="PAUSED" styleClass="pauseTitle"/>
+            <Label text="Press 'P' to Resume" styleClass="pauseInstruction"/>
+        </VBox>
+    </StackPane>
+
+    <Group fx:id="groupNotification" layoutX="125.0" layoutY="200.0">
         <VBox alignment="CENTER">
             <GameOverPanel fx:id="gameOverPanel"/>
         </VBox>

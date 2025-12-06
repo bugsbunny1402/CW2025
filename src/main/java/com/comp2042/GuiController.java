@@ -197,10 +197,22 @@ public class GuiController implements Initializable {
             }
         }
     }
-
+    /**
+     * Updates the layout position of the falling brick panel.
+     * Adjusted for StackPane alignment (bricks move relative to the game board).
+     */
     private void updateBrickPanelPosition(ViewData brick) {
-        brickPanel.setLayoutX(gamePanel.getLayoutX() + brick.getxPosition() * brickPanel.getVgap() + brick.getxPosition() * BRICK_SIZE);
-        brickPanel.setLayoutY(-42 + gamePanel.getLayoutY() + brick.getyPosition() * brickPanel.getHgap() + brick.getyPosition() * BRICK_SIZE);
+        // Base X must match the FXML layoutX of the gameBoard (125)
+        double baseX = 125.0;
+        // Base Y must match the FXML layoutY of the gameBoard (30)
+        double baseY = 30.0;
+
+        // Calculate offsets based on the grid coordinates (Cell Size 20 + 1px Gap)
+        double xOffset = brick.getxPosition() * (BRICK_SIZE + 1);
+        double yOffset = (brick.getyPosition() - 2) * (BRICK_SIZE + 1); // -2 to account for hidden rows
+
+        brickPanel.setLayoutX(baseX + xOffset);
+        brickPanel.setLayoutY(baseY + yOffset);
     }
 
     // Generic helper to update all views at once
