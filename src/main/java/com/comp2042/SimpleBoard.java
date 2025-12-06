@@ -7,16 +7,12 @@ import com.comp2042.logic.bricks.RandomBrickGenerator;
 import java.awt.*;
 
 /**
- * SimpleBoard
- *
- * This class represents the main game board for the game.
- * It is responsible for :
- * - Storing the current game matrix (placed bricks and empty cells)
- * - Tracking the current falling brick and its offset on the board
- * - Creating new bricks via a BrickGenerator
- * - Checking collisions and merging bricks into the background matrix
- * - Clearing full rows and updating the score
- * - Managing the Hold Piece mechanic
+ * Represents the core game board for Tetris.
+ * <p>
+ * This class acts as the Model. It stores the game grid, manages the falling brick,
+ * handles collision detection, and implements key mechanics like Hold Piece,
+ * Ghost Piece calculations, and Level progression.
+ * </p>
  */
 public class SimpleBoard implements Board {
 
@@ -32,7 +28,7 @@ public class SimpleBoard implements Board {
 
     // Hold Piece Fields
     private Brick holdBrick = null;
-    private Brick currentBrick; // Promoted to field to allow swapping
+    private Brick currentBrick;
     private boolean hasHeldThisTurn = false;
 
     public SimpleBoard(int width, int height) {
@@ -44,6 +40,12 @@ public class SimpleBoard implements Board {
         score = new Score();
     }
 
+    /**
+     * Calculates the position where the current brick would land if dropped instantly.
+     * Used for rendering the Ghost Piece.
+     *
+     * @return The coordinate point of the ghost piece.
+     */
     private Point calculateGhostOffset() {
         Point ghostOffset = new Point(currentOffset);
         int[][] currentShape = brickRotator.getCurrentShape();
@@ -65,23 +67,17 @@ public class SimpleBoard implements Board {
 
     /**
      * Swaps the current brick with the held brick.
-     * If no brick is held, the current brick is moved to hold and a new one is generated.
      */
     public void swapHoldBrick() {
-        if (hasHeldThisTurn) {
-            return; // Prevent multiple swaps in one turn
-        }
+        if (hasHeldThisTurn) return;
 
         if (holdBrick == null) {
-            // First hold: Store current, spawn next immediately
             holdBrick = currentBrick;
-
-            // Manually generate next brick to avoid resetting hasHeldThisTurn
+            // Generate new brick manually to avoid resetting hold flag via createNewBrick
             currentBrick = brickGenerator.getBrick();
             brickRotator.setBrick(currentBrick);
             currentOffset = new Point(4, 0);
         } else {
-            // Swap current and hold
             Brick temp = currentBrick;
             currentBrick = holdBrick;
             holdBrick = temp;
@@ -89,18 +85,15 @@ public class SimpleBoard implements Board {
             brickRotator.setBrick(currentBrick);
             currentOffset = new Point(4, 0);
         }
-
-        hasHeldThisTurn = true; // Lock holding until next piece spawns
+        hasHeldThisTurn = true;
     }
 
     @Override
     public boolean createNewBrick() {
-        currentBrick = brickGenerator.getBrick(); // Use the class field
+        currentBrick = brickGenerator.getBrick();
         brickRotator.setBrick(currentBrick);
-        currentOffset = new Point(4, 0);
-
-        hasHeldThisTurn = false; // Reset hold flag for the new turn
-
+        currentOffset = new Point(4, 0); // Fixed Y=0
+        hasHeldThisTurn = false;
         return MatrixOperations.intersect(currentGameMatrix, brickRotator.getCurrentShape(), (int) currentOffset.getX(), (int) currentOffset.getY());
     }
 
@@ -167,10 +160,9 @@ public class SimpleBoard implements Board {
     @Override
     public ViewData getViewData() {
         Point ghost = calculateGhostOffset();
-
-        // Prepare hold data (null if empty)
         int[][] holdData = (holdBrick != null) ? holdBrick.getShapeMatrix().get(0) : null;
 
+        // PASS ALL 7 ARGUMENTS (Including Ghost and Hold)
         return new ViewData(
                 brickRotator.getCurrentShape(),
                 (int) currentOffset.getX(),
@@ -178,7 +170,7 @@ public class SimpleBoard implements Board {
                 brickGenerator.getNextBrick().getShapeMatrix().get(0),
                 (int) ghost.getX(),
                 (int) ghost.getY(),
-                holdData // Pass Hold Data to View
+                holdData
         );
     }
 
@@ -192,13 +184,10 @@ public class SimpleBoard implements Board {
         ClearRow clearRow = MatrixOperations.checkRemoving(currentGameMatrix);
         currentGameMatrix = clearRow.getNewMatrix();
 
-        int linesRemoved = clearRow.getLinesRemoved();
-        if (linesRemoved > 0) {
-            totalLinesCleared += linesRemoved;
+        if (clearRow.getLinesRemoved() > 0) {
+            totalLinesCleared += clearRow.getLinesRemoved();
             int newLevel = (totalLinesCleared / 10) + 1;
-            if (newLevel > currentLevel) {
-                currentLevel = newLevel;
-            }
+            if (newLevel > currentLevel) currentLevel = newLevel;
         }
         return clearRow;
     }
@@ -232,7 +221,7 @@ public class SimpleBoard implements Board {
         score.reset();
         totalLinesCleared = 0;
         currentLevel = 1;
-        holdBrick = null; // Reset hold
+        holdBrick = null;
         hasHeldThisTurn = false;
         createNewBrick();
     }

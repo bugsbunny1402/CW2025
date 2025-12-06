@@ -20,7 +20,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Font;
 import javafx.util.Duration;
 
 import java.net.URL;
@@ -33,13 +32,14 @@ public class GuiController implements Initializable {
     @FXML private GridPane gamePanel;
     @FXML private Group groupNotification;
     @FXML private GridPane brickPanel;
+    private GridPane ghostPanel; // Ghost piece panel (created programmatically)
 
     // Preview Panels
     @FXML private GridPane nextBrickPanel;
-    @FXML private GridPane holdBrickPanel; // Added Hold Panel
+    @FXML private GridPane holdBrickPanel;
 
     @FXML private GameOverPanel gameOverPanel;
-    @FXML private StackPane pauseMenu; // Added Pause Overlay
+    @FXML private StackPane pauseMenu; 
 
     // Labels
     @FXML private Label scoreLabel;
@@ -48,6 +48,7 @@ public class GuiController implements Initializable {
 
     private Rectangle[][] displayMatrix;
     private Rectangle[][] rectangles;
+    private Rectangle[][] ghostRectangles; // Ghost piece rectangles
     private Rectangle[][] nextBrickDisplay;
     private Rectangle[][] holdBrickDisplay; // Added Hold Display
 
@@ -59,7 +60,21 @@ public class GuiController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // Font loading removed (Using system fonts for neon look)
+        // Create ghostPanel programmatically
+        ghostPanel = new GridPane();
+        ghostPanel.setHgap(1);
+        ghostPanel.setVgap(1);
+        ghostPanel.setLayoutX(125.0);
+        ghostPanel.setLayoutY(30.0);
+        ghostPanel.setMouseTransparent(true);
+        
+        // Add ghostPanel to the parent pane (behind brickPanel)
+        if (brickPanel != null && brickPanel.getParent() instanceof javafx.scene.layout.Pane) {
+            javafx.scene.layout.Pane parentPane = (javafx.scene.layout.Pane) brickPanel.getParent();
+            int brickPanelIndex = parentPane.getChildren().indexOf(brickPanel);
+            parentPane.getChildren().add(brickPanelIndex, ghostPanel);
+        }
+        
         gamePanel.setFocusTraversable(true);
         gamePanel.requestFocus();
 
@@ -149,8 +164,23 @@ public class GuiController implements Initializable {
             }
         }
 
+        // Initialize ghost panel
+        ghostRectangles = new Rectangle[brick.getBrickData().length][brick.getBrickData()[0].length];
+        for (int i = 0; i < brick.getBrickData().length; i++) {
+            for (int j = 0; j < brick.getBrickData()[i].length; j++) {
+                Rectangle rectangle = new Rectangle(BRICK_SIZE, BRICK_SIZE);
+                rectangle.setFill(Color.TRANSPARENT);
+                ghostRectangles[i][j] = rectangle;
+                if (ghostPanel != null) {
+                    ghostPanel.add(rectangle, j, i);
+                }
+            }
+        }
+
         // Initial positioning
         updateBrickPanelPosition(brick);
+        updateGhostPanelPosition(brick);
+        refreshGhostPiece(brick);
 
         // Initial Previews
         refreshNextBrick(brick.getNextBrickData());
@@ -195,6 +225,10 @@ public class GuiController implements Initializable {
                     setRectangleData(currentBrickData[i][j], rectangles[i][j]);
                 }
             }
+            
+            // Update ghost piece
+            updateGhostPanelPosition(brick);
+            refreshGhostPiece(brick);
         }
     }
     /**
@@ -213,6 +247,64 @@ public class GuiController implements Initializable {
 
         brickPanel.setLayoutX(baseX + xOffset);
         brickPanel.setLayoutY(baseY + yOffset);
+    }
+
+    /**
+     * Updates the layout position of the ghost piece panel.
+     */
+    private void updateGhostPanelPosition(ViewData brick) {
+        if (ghostPanel == null) return;
+        
+        double baseX = 125.0;
+        double baseY = 30.0;
+
+        double xOffset = brick.getGhostX() * (BRICK_SIZE + 1);
+        double yOffset = (brick.getGhostY() - 2) * (BRICK_SIZE + 1);
+
+        ghostPanel.setLayoutX(baseX + xOffset);
+        ghostPanel.setLayoutY(baseY + yOffset);
+    }
+
+    /**
+     * Refreshes the ghost piece rectangles with semi-transparent appearance.
+     * The ghost uses the same color as the piece but with reduced opacity.
+     */
+    private void refreshGhostPiece(ViewData brick) {
+        if (ghostPanel == null || ghostRectangles == null) return;
+        
+        int[][] currentBrickData = brick.getBrickData();
+        for (int i = 0; i < ghostRectangles.length; i++) {
+            for (int j = 0; j < ghostRectangles[i].length; j++) {
+                if (i < currentBrickData.length && j < currentBrickData[i].length && currentBrickData[i][j] != 0) {
+                    // Get the original color of the piece
+                    Paint originalColor = getFillColor(currentBrickData[i][j]);
+                    
+                    // Make it semi-transparent for ghost effect
+                    if (originalColor instanceof Color) {
+                        Color color = (Color) originalColor;
+                        // Use the same color but with 25% opacity for fill and 40% for border
+                        ghostRectangles[i][j].setFill(Color.rgb(
+                            (int)(color.getRed() * 255),
+                            (int)(color.getGreen() * 255),
+                            (int)(color.getBlue() * 255),
+                            0.25  // 25% opacity
+                        ));
+                        ghostRectangles[i][j].setStroke(Color.rgb(
+                            (int)(color.getRed() * 255),
+                            (int)(color.getGreen() * 255),
+                            (int)(color.getBlue() * 255),
+                            0.4  // 40% opacity for border
+                        ));
+                        ghostRectangles[i][j].setStrokeWidth(1.5);
+                        ghostRectangles[i][j].setArcHeight(5);
+                        ghostRectangles[i][j].setArcWidth(5);
+                    }
+                } else {
+                    ghostRectangles[i][j].setFill(Color.TRANSPARENT);
+                    ghostRectangles[i][j].setStroke(null);
+                }
+            }
+        }
     }
 
     // Generic helper to update all views at once
