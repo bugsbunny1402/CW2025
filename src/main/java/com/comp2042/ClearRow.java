@@ -27,7 +27,7 @@ public final class ClearRow {
     public int getScoreBonus() {
         return scoreBonus;
     }
-    
+
     public List<Integer> getClearedRowIndices() {
         return clearedRowIndices;
     }

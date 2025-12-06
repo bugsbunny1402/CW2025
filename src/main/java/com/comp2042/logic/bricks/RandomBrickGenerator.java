@@ -22,7 +22,9 @@ public class RandomBrickGenerator implements BrickGenerator {
     private final List<Brick> brickPrototypes; // Templates for the 7 bricks
     private final Deque<Brick> brickBag = new ArrayDeque<>(); // The "Bag"
     private final Deque<Brick> nextBricks = new ArrayDeque<>(); // The preview queue
-
+    /**
+     * Constructs the generator and initializes the list of available bricks.
+     */
     public RandomBrickGenerator() {
         brickPrototypes = new ArrayList<>();
         brickPrototypes.add(new IBrick());
