@@ -23,6 +23,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class GuiController implements Initializable {
@@ -305,6 +306,107 @@ public class GuiController implements Initializable {
                 }
             }
         }
+    }
+
+    /**
+     * Animates line clearing with flash effects before removing them.
+     * Creates a visually appealing sequence:
+     * 1. Flash white 3 times
+     * 2. Fade out
+     * 3. Update the board
+     */
+    public void animateLineClear(List<Integer> clearedRowIndices, Runnable onComplete) {
+        if (clearedRowIndices == null || clearedRowIndices.isEmpty()) {
+            onComplete.run();
+            return;
+        }
+        
+        // Store original colors
+        final int[][] originalColors = new int[clearedRowIndices.size()][];
+        for (int idx = 0; idx < clearedRowIndices.size(); idx++) {
+            int rowIndex = clearedRowIndices.get(idx);
+            if (rowIndex >= 2 && rowIndex < displayMatrix.length) {
+                originalColors[idx] = new int[displayMatrix[rowIndex].length];
+                for (int j = 0; j < displayMatrix[rowIndex].length; j++) {
+                    // Store color value (1-7)
+                    Paint fill = displayMatrix[rowIndex][j].getFill();
+                    originalColors[idx][j] = getColorIndex(fill);
+                }
+            }
+        }
+        
+        // Flash animation: 3 flashes at 100ms intervals
+        final int[] flashCount = {0};
+        final Timeline flashTimeline = new Timeline();
+        
+        for (int flash = 0; flash < 6; flash++) { // 3 flashes = 6 toggles (on/off)
+            final boolean isWhite = (flash % 2 == 0);
+            KeyFrame keyFrame = new KeyFrame(
+                Duration.millis(flash * 80),
+                e -> {
+                    for (int idx = 0; idx < clearedRowIndices.size(); idx++) {
+                        int rowIndex = clearedRowIndices.get(idx);
+                        if (rowIndex >= 2 && rowIndex < displayMatrix.length) {
+                            for (int j = 0; j < displayMatrix[rowIndex].length; j++) {
+                                if (isWhite) {
+                                    // Flash white
+                                    displayMatrix[rowIndex][j].setFill(Color.WHITE);
+                                } else {
+                                    // Restore original color
+                                    setRectangleData(originalColors[idx][j], displayMatrix[rowIndex][j]);
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+            flashTimeline.getKeyFrames().add(keyFrame);
+        }
+        
+        // Fade out animation
+        KeyFrame fadeKeyFrame = new KeyFrame(
+            Duration.millis(480), // After flashing
+            e -> {
+                for (int idx = 0; idx < clearedRowIndices.size(); idx++) {
+                    int rowIndex = clearedRowIndices.get(idx);
+                    if (rowIndex >= 2 && rowIndex < displayMatrix.length) {
+                        for (int j = 0; j < displayMatrix[rowIndex].length; j++) {
+                            // Fade to transparent
+                            displayMatrix[rowIndex][j].setFill(Color.rgb(255, 255, 255, 0.3));
+                        }
+                    }
+                }
+            }
+        );
+        flashTimeline.getKeyFrames().add(fadeKeyFrame);
+        
+        // Final clear - call the completion callback
+        KeyFrame clearKeyFrame = new KeyFrame(
+            Duration.millis(600), // Total animation duration
+            e -> onComplete.run()
+        );
+        flashTimeline.getKeyFrames().add(clearKeyFrame);
+        
+        flashTimeline.play();
+    }
+    
+    /**
+     * Helper to get color index from Paint for animation
+     */
+    private int getColorIndex(Paint paint) {
+        if (!(paint instanceof Color)) return 0;
+        Color c = (Color) paint;
+        
+        // Match colors to their indices (based on getFillColor method)
+        if (c.equals(Color.web("#00FFFF"))) return 1; // Cyan
+        if (c.equals(Color.web("#B026FF"))) return 2; // Purple
+        if (c.equals(Color.web("#39FF14"))) return 3; // Green
+        if (c.equals(Color.web("#FFFF00"))) return 4; // Yellow
+        if (c.equals(Color.web("#FF3131"))) return 5; // Red
+        if (c.equals(Color.web("#1F51FF"))) return 6; // Blue
+        if (c.equals(Color.web("#FF10F0"))) return 7; // Pink
+        
+        return 0; // Transparent
     }
 
     // Generic helper to update all views at once

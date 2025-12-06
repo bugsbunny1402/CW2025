@@ -25,20 +25,28 @@ public class GameController implements InputEventListener {
         ClearRow clearRow = null;
         if (!canMove) {
             board.mergeBrickToBackground();
+            viewGuiController.refreshGameBackground(board.getBoardMatrix()); // Show merged piece
+            
             clearRow = board.clearRows();
+            
             if (clearRow.getLinesRemoved() > 0) {
-                board.getScore().add(clearRow.getScoreBonus());
-                soundManager.playClear();
-                updateLevelAndSpeed(); // Reuse logic
+                // Trigger line clear animation BEFORE updating board
+                final ClearRow finalClearRow = clearRow;
+                viewGuiController.animateLineClear(clearRow.getClearedRowIndices(), () -> {
+                    // After animation completes, update the board
+                    viewGuiController.refreshGameBackground(board.getBoardMatrix());
+                    board.getScore().add(finalClearRow.getScoreBonus());
+                    soundManager.playClear();
+                    updateLevelAndSpeed();
+                });
             }
+            
             if (board.createNewBrick()) {
                 if (soundManager != null) {
                     soundManager.playGameOver();
                 }
                 viewGuiController.gameOver();
             }
-
-            viewGuiController.refreshGameBackground(board.getBoardMatrix());
 
         } else {
             if (event.getEventSource() == EventSource.USER) {
@@ -79,16 +87,26 @@ public class GameController implements InputEventListener {
 
         // Brick has landed
         board.mergeBrickToBackground();
+        viewGuiController.refreshGameBackground(board.getBoardMatrix()); // Show merged piece
+        
         ClearRow clearRow = board.clearRows();
+        
         if (clearRow.getLinesRemoved() > 0) {
-            board.getScore().add(clearRow.getScoreBonus());
-            updateLevelAndSpeed();
+            // Trigger line clear animation BEFORE updating board
+            final ClearRow finalClearRow = clearRow;
+            viewGuiController.animateLineClear(clearRow.getClearedRowIndices(), () -> {
+                // After animation completes, update the board
+                viewGuiController.refreshGameBackground(board.getBoardMatrix());
+                board.getScore().add(finalClearRow.getScoreBonus());
+                updateLevelAndSpeed();
+            });
+            soundManager.playClear();
         }
+        
         if (board.createNewBrick()) {
             viewGuiController.gameOver();
         }
 
-        viewGuiController.refreshGameBackground(board.getBoardMatrix());
         return new DownData(clearRow, board.getViewData());
     }
 
