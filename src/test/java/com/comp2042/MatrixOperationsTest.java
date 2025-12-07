@@ -1,9 +1,9 @@
-import com.comp2042.MatrixOperations;
+import com.comp2042.util.MatrixOperations;
+import com.comp2042.model.ClearRow;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import com.comp2042.ClearRow;
 
 import static org.junit.jupiter.api.Assertions.*;
 

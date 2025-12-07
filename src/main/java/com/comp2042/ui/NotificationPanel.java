@@ -1,0 +1,72 @@
+package com.comp2042.ui;
+
+import javafx.animation.*;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.paint.Color;
+import javafx.util.Duration;
+
+/**
+ * UI component that displays animated score notifications.
+ * Shows score popups with different styles for regular and combo clears.
+ */
+public class NotificationPanel extends BorderPane {
+
+    public NotificationPanel(String text, boolean isCombo) {
+        setMinHeight(200);
+        setMinWidth(220);
+        final Label score = new Label(text);
+        
+        // Clearer, better sized font
+        score.setStyle("-fx-font-size: 36px; -fx-font-weight: bold; -fx-font-family: 'Arial Black', 'Impact', sans-serif;");
+        
+        // Choose color: Pink for combo, Cyan for normal
+        Color textColor = isCombo ? Color.web("#FF10F0") : Color.web("#00FFFF");
+        score.setTextFill(textColor);
+        
+        // Add clean glow effect (not too intense)
+        DropShadow glow = new DropShadow();
+        glow.setColor(textColor);
+        glow.setRadius(12);
+        glow.setSpread(0.4);
+        score.setEffect(glow);
+        
+        // Better text rendering
+        score.setCache(true);
+        
+        setCenter(score);
+    }
+
+    public void showScore(ObservableList<Node> list) {
+        // Scale animation - pop in effect
+        ScaleTransition st = new ScaleTransition(Duration.millis(300), this);
+        st.setFromX(1.5);
+        st.setFromY(1.5);
+        st.setToX(1.0);
+        st.setToY(1.0);
+        
+        // Fade out
+        FadeTransition ft = new FadeTransition(Duration.millis(1500), this);
+        ft.setFromValue(1);
+        ft.setToValue(0);
+        ft.setDelay(Duration.millis(500));
+        
+        // Float up
+        TranslateTransition tt = new TranslateTransition(Duration.millis(2000), this);
+        tt.setToY(this.getLayoutY() - 60);
+        
+        ParallelTransition transition = new ParallelTransition(st, tt, ft);
+        transition.setOnFinished(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                list.remove(NotificationPanel.this);
+            }
+        });
+        transition.play();
+    }
+}
