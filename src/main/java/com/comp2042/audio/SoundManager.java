@@ -7,7 +7,22 @@ import java.net.URL;
 
 /**
  * Manages all game audio including background music and sound effects.
- * Handles loading, playing, and stopping of audio clips.
+ * Loads sound files from the resources directory and provides methods
+ * to play them on demand. Supports both short sound effects (AudioClip)
+ * and looping background music (MediaPlayer).
+ * 
+ * <p>Available sound effects:
+ * <ul>
+ *   <li>Move - played when a piece moves successfully</li>
+ *   <li>Clear - played when one or more lines are completed</li>
+ *   <li>Game over - played when the game ends</li>
+ * </ul>
+ * 
+ * <p>Background music loops continuously during gameplay and can be
+ * muted via the isMuted flag.
+ * 
+ * @see AudioClip
+ * @see MediaPlayer
  */
 public class SoundManager {
     // File paths relative to src/main/resources/
@@ -19,14 +34,24 @@ public class SoundManager {
     private MediaPlayer bgmPlayer;
     private boolean isMuted = false;
 
+    /**
+     * Constructs a new SoundManager instance.
+     * Sound files are loaded lazily when first played.
+     */
     public SoundManager() {
         // Pre-load logic could go here if needed
     }
 
+    /**
+     * Plays the move sound effect when a piece successfully moves.
+     */
     public void playMove() {
         playSound(MOVE_SOUND);
     }
 
+    /**
+     * Plays the line clear sound effect when lines are completed.
+     */
     public void playClear() {
         playSound(CLEAR_SOUND);
     }
@@ -36,6 +61,11 @@ public class SoundManager {
         playSound(GAMEOVER_SOUND);
     }
 
+    /**
+     * Starts playing background music on an infinite loop.
+     * Music is set to 50% volume and loops until stopped.
+     * Does nothing if muted.
+     */
     public void startMusic() {
         if (isMuted) return;
         try {
@@ -54,12 +84,21 @@ public class SoundManager {
         }
     }
 
+    /**
+     * Stops the background music if it is currently playing.
+     */
     public void stopMusic() {
         if (bgmPlayer != null) {
             bgmPlayer.stop();
         }
     }
 
+    /**
+     * Helper method to play a sound effect from a file path.
+     * Loads and plays the audio clip if not muted and file exists.
+     * 
+     * @param fileName the resource path to the sound file
+     */
     private void playSound(String fileName) {
         if (isMuted) return;
         try {

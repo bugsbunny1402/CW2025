@@ -3,8 +3,22 @@ package com.comp2042.util;
 import java.io.*;
 
 /**
- * Utility class for managing high score persistence.
- * Handles loading and saving the highest score to disk.
+ * Manages persistent storage and retrieval of the player's high score.
+ * Uses a simple binary file to store the highest score achieved across game sessions.
+ * The score file is saved in the same directory as the application for easy access.
+ * 
+ * <p>File name: {@code highscore.dat}
+ * 
+ * <p>Key features:
+ * <ul>
+ *   <li>Returns 0 if no high score file exists yet</li>
+ *   <li>Binary format using DataInputStream/DataOutputStream</li>
+ *   <li>Graceful error handling with fallback values</li>
+ * </ul>
+ * 
+ * <p>This utility class cannot be instantiated.
+ * 
+ * @see com.comp2042.model.Score
  */
 public class HighScoreManager {
 
@@ -18,8 +32,9 @@ public class HighScoreManager {
     }
 
     /**
-     * Loads the high score from file.
-     * @return The saved high score, or 0 if file doesn't exist or error occurs.
+     * Retrieves the current high score from persistent storage.
+     * 
+     * @return the stored high score, or 0 if file doesn't exist or read error occurs
      */
     public static int loadHighScore() {
         try (DataInputStream dis = new DataInputStream(new FileInputStream(HIGHSCORE_FILE))) {
@@ -30,8 +45,10 @@ public class HighScoreManager {
     }
 
     /**
-     * Saves the high score to file.
-     * @param score The score to save.
+     * Saves a score to persistent storage.
+     * Writes the score to the high score file, overwriting any previous value.
+     * 
+     * @param score the score to save
      */
     public static void saveHighScore(int score) {
         try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(HIGHSCORE_FILE))) {

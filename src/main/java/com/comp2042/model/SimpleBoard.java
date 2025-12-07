@@ -8,12 +8,29 @@ import com.comp2042.util.MatrixOperations;
 import java.awt.*;
 
 /**
- * Represents the core game board for Tetris.
- * <p>
- * This class acts as the Model. It stores the game grid, manages the falling brick,
- * handles collision detection, and implements key mechanics like Hold Piece,
- * Ghost Piece calculations, and Level progression.
- * </p>
+ * Implementation of the game board that manages the Tetris play area and active pieces.
+ * This class maintains the game grid state, handles brick movement and rotation,
+ * and implements core Tetris mechanics including collision detection, line clearing,
+ * and level progression.
+ * 
+ * <p>The board uses a 2D integer matrix where each cell value represents either
+ * empty space (0) or a colored block (1-7). The board manages three key pieces:
+ * <ul>
+ *   <li>Current falling brick being controlled by the player</li>
+ *   <li>Held brick that can be swapped with the current piece</li>
+ *   <li>Next brick preview for player planning</li>
+ * </ul>
+ * 
+ * <p>Additional features:
+ * <ul>
+ *   <li>Ghost piece calculation showing landing position</li>
+ *   <li>Hold piece mechanic with one-use-per-piece restriction</li>
+ *   <li>Progressive difficulty through level increases every 10 lines</li>
+ * </ul>
+ * 
+ * @see Board
+ * @see BrickRotator
+ * @see Score
  */
 public class SimpleBoard implements Board {
 
@@ -32,6 +49,13 @@ public class SimpleBoard implements Board {
     private Brick currentBrick;
     private boolean hasHeldThisTurn = false;
 
+    /**
+     * Constructs a new game board with specified dimensions.
+     * Initializes an empty grid, brick generator, rotation controller, and scoring system.
+     * 
+     * @param width the number of rows in the game board
+     * @param height the number of columns in the game board
+     */
     public SimpleBoard(int width, int height) {
         this.width = width;
         this.height = height;
@@ -42,10 +66,12 @@ public class SimpleBoard implements Board {
     }
 
     /**
-     * Calculates the position where the current brick would land if dropped instantly.
-     * Used for rendering the Ghost Piece.
+     * Calculates where the current brick would land if dropped straight down.
+     * This position is used to render the ghost piece, giving players a visual
+     * guide for piece placement. The calculation simulates gravity without
+     * affecting the actual brick position.
      *
-     * @return The coordinate point of the ghost piece.
+     * @return Point coordinates of the ghost piece position
      */
     private Point calculateGhostOffset() {
         Point ghostOffset = new Point(currentOffset);
@@ -58,17 +84,33 @@ public class SimpleBoard implements Board {
         return ghostOffset;
     }
 
+    /**
+     * Returns the current difficulty level determined by total lines cleared.
+     * Level increases by 1 for every 10 lines cleared, affecting game speed.
+     * 
+     * @return the current level number starting from 1
+     */
     @Override
     public int getCurrentLevel() {
         return currentLevel;
     }
 
+    /**
+     * Returns the cumulative count of lines cleared during the current game session.
+     * This value is used to calculate the current level and track player progress.
+     * 
+     * @return total number of lines cleared since game start
+     */
     public int getTotalLinesCleared() {
         return totalLinesCleared;
     }
 
     /**
-     * Swaps the current brick with the held brick.
+     * Exchanges the current falling brick with the held brick.
+     * If no brick is held, stores the current brick and generates a new one.
+     * If a brick is already held, swaps them.
+     * Can only be used once per brick to prevent excessive use.
+     * The brick is reset to the spawn position after swapping.
      */
     @Override
     public void swapHoldBrick() {
@@ -91,6 +133,12 @@ public class SimpleBoard implements Board {
         hasHeldThisTurn = true;
     }
 
+    /**
+     * Spawns a new brick at the top center of the board.
+     * Resets the hold mechanic flag to allow using hold once for this piece.
+     * 
+     * @return true if the new brick immediately collides (game over condition), false otherwise
+     */
     @Override
     public boolean createNewBrick() {
         currentBrick = brickGenerator.getBrick();
@@ -100,6 +148,12 @@ public class SimpleBoard implements Board {
         return MatrixOperations.intersect(currentGameMatrix, brickRotator.getCurrentShape(), (int) currentOffset.getX(), (int) currentOffset.getY());
     }
 
+    /**
+     * Attempts to move the current brick down by one row.
+     * Checks for collisions before moving. Used for both gravity and soft drops.
+     * 
+     * @return true if the brick successfully moved down, false if blocked
+     */
     @Override
     public boolean moveBrickDown() {
         int[][] currentMatrix = MatrixOperations.copy(currentGameMatrix);
@@ -114,6 +168,12 @@ public class SimpleBoard implements Board {
         }
     }
 
+    /**
+     * Attempts to move the current brick left by one column.
+     * Movement is blocked if it would cause collision with walls or existing blocks.
+     * 
+     * @return true if the brick successfully moved left, false if blocked
+     */
     @Override
     public boolean moveBrickLeft() {
         int[][] currentMatrix = MatrixOperations.copy(currentGameMatrix);
@@ -128,6 +188,12 @@ public class SimpleBoard implements Board {
         }
     }
 
+    /**
+     * Attempts to move the current brick right by one column.
+     * Movement is blocked if it would cause collision with walls or existing blocks.
+     * 
+     * @return true if the brick successfully moved right, false if blocked
+     */
     @Override
     public boolean moveBrickRight() {
         int[][] currentMatrix = MatrixOperations.copy(currentGameMatrix);
@@ -142,6 +208,13 @@ public class SimpleBoard implements Board {
         }
     }
 
+    /**
+     * Attempts to rotate the current brick 90 degrees counter-clockwise.
+     * Rotation is prevented if the new orientation would overlap with
+     * existing blocks or extend beyond the board boundaries.
+     * 
+     * @return true if the brick successfully rotated, false if blocked
+     */
     @Override
     public boolean rotateLeftBrick() {
         int[][] currentMatrix = MatrixOperations.copy(currentGameMatrix);
@@ -155,11 +228,25 @@ public class SimpleBoard implements Board {
         }
     }
 
+    /**
+     * Returns the underlying 2D array representing the game board state.
+     * Each cell contains 0 for empty or 1-7 for colored blocks.
+     * The top 2 rows are typically hidden from view (spawn area).
+     * 
+     * @return the game board matrix
+     */
     @Override
     public int[][] getBoardMatrix() {
         return currentGameMatrix;
     }
 
+    /**
+     * Compiles all visual data needed by the GUI to render the current game state.
+     * Includes the active brick, its position, ghost piece location, next brick preview,
+     * and held brick if any.
+     * 
+     * @return ViewData object containing all rendering information
+     */
     @Override
     public ViewData getViewData() {
         Point ghost = calculateGhostOffset();
@@ -177,11 +264,24 @@ public class SimpleBoard implements Board {
         );
     }
 
+    /**
+     * Permanently adds the current brick to the board at its current position.
+     * This is called when a brick can no longer move down, locking it in place.
+     * The brick's blocks become part of the static board grid.
+     */
     @Override
     public void mergeBrickToBackground() {
         currentGameMatrix = MatrixOperations.merge(currentGameMatrix, brickRotator.getCurrentShape(), (int) currentOffset.getX(), (int) currentOffset.getY());
     }
 
+    /**
+     * Scans the board for completed horizontal lines and removes them.
+     * Lines above cleared rows drop down to fill the gaps. Updates the
+     * total lines cleared count and increases level if threshold is reached.
+     * The scoring bonus is calculated based on number of lines cleared simultaneously.
+     * 
+     * @return ClearRow object containing cleared line count, updated matrix, and score bonus
+     */
     @Override
     public ClearRow clearRows() {
         ClearRow clearRow = MatrixOperations.checkRemoving(currentGameMatrix);
@@ -195,11 +295,24 @@ public class SimpleBoard implements Board {
         return clearRow;
     }
 
+    /**
+     * Returns the Score object tracking points and combo multipliers.
+     * The score object is bound to the UI for automatic display updates.
+     * 
+     * @return the current Score instance
+     */
     @Override
     public Score getScore() {
         return score;
     }
 
+    /**
+     * Instantly drops the current brick to its lowest possible position.
+     * The brick descends until it collides with the bottom or another block.
+     * Used internally by the hard drop feature to calculate bonus points.
+     * 
+     * @return the number of rows the brick dropped
+     */
     @Override
     public int hardDrop() {
         int distanceMoved = 0;
@@ -218,6 +331,11 @@ public class SimpleBoard implements Board {
         return distanceMoved;
     }
 
+    /**
+     * Resets the board to initial state for a new game.
+     * Clears all blocks from the grid, resets score and level to starting values,
+     * removes any held brick, and spawns the first piece.
+     */
     @Override
     public void newGame() {
         currentGameMatrix = new int[width][height];
