@@ -26,21 +26,37 @@ public class GameController implements InputEventListener {
         if (!canMove) {
             board.mergeBrickToBackground();
             viewGuiController.refreshGameBackground(board.getBoardMatrix()); // Show merged piece
-            
+
             clearRow = board.clearRows();
-            
+
             if (clearRow.getLinesRemoved() > 0) {
+                // Increment combo
+                board.getScore().incrementCombo();
+                int comboCount = board.getScore().getComboCount();
+                int comboBonus = board.getScore().getComboBonus(clearRow.getScoreBonus());
+                boolean isCombo = comboCount > 0;
+                
                 // Trigger line clear animation BEFORE updating board
                 final ClearRow finalClearRow = clearRow;
+                final int totalScore = clearRow.getScoreBonus() + comboBonus;
                 viewGuiController.animateLineClear(clearRow.getClearedRowIndices(), () -> {
                     // After animation completes, update the board
                     viewGuiController.refreshGameBackground(board.getBoardMatrix());
-                    board.getScore().add(finalClearRow.getScoreBonus());
+                    board.getScore().add(totalScore);
+                    
+                    // Show score notification with combo effect
+                    viewGuiController.showScoreNotification(totalScore, isCombo);
+                    viewGuiController.setCombo(comboCount);
+                    
                     soundManager.playClear();
                     updateLevelAndSpeed();
                 });
+            } else {
+                // Reset combo if no lines cleared
+                board.getScore().resetCombo();
+                viewGuiController.setCombo(0);
             }
-            
+
             if (board.createNewBrick()) {
                 if (soundManager != null) {
                     soundManager.playGameOver();
@@ -92,15 +108,31 @@ public class GameController implements InputEventListener {
         ClearRow clearRow = board.clearRows();
         
         if (clearRow.getLinesRemoved() > 0) {
+            // Increment combo
+            board.getScore().incrementCombo();
+            int comboCount = board.getScore().getComboCount();
+            int comboBonus = board.getScore().getComboBonus(clearRow.getScoreBonus());
+            boolean isCombo = comboCount > 0;
+            
             // Trigger line clear animation BEFORE updating board
             final ClearRow finalClearRow = clearRow;
+            final int totalScore = clearRow.getScoreBonus() + comboBonus;
             viewGuiController.animateLineClear(clearRow.getClearedRowIndices(), () -> {
                 // After animation completes, update the board
                 viewGuiController.refreshGameBackground(board.getBoardMatrix());
-                board.getScore().add(finalClearRow.getScoreBonus());
+                board.getScore().add(totalScore);
+                
+                // Show score notification with combo effect
+                viewGuiController.showScoreNotification(totalScore, isCombo);
+                viewGuiController.setCombo(comboCount);
+                
                 updateLevelAndSpeed();
             });
             soundManager.playClear();
+        } else {
+            // Reset combo if no lines cleared
+            board.getScore().resetCombo();
+            viewGuiController.setCombo(0);
         }
         
         if (board.createNewBrick()) {
@@ -126,6 +158,7 @@ public class GameController implements InputEventListener {
         // Reset Level and Speed for new game
         viewGuiController.setLevel(1);
         viewGuiController.setGameSpeed(400);
+        viewGuiController.setCombo(0);
     }
 
     private void updateLevelAndSpeed() {

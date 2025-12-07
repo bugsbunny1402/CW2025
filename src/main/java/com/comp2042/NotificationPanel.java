@@ -1,40 +1,62 @@
 package com.comp2042;
 
-import javafx.animation.FadeTransition;
-import javafx.animation.ParallelTransition;
-import javafx.animation.TranslateTransition;
+import javafx.animation.*;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.effect.Effect;
-import javafx.scene.effect.Glow;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
 public class NotificationPanel extends BorderPane {
 
-    public NotificationPanel(String text) {
+    public NotificationPanel(String text, boolean isCombo) {
         setMinHeight(200);
         setMinWidth(220);
         final Label score = new Label(text);
-        score.getStyleClass().add("bonusStyle");
-        final Effect glow = new Glow(0.6);
+        
+        // Smaller, clearer font
+        score.setStyle("-fx-font-size: 36px; -fx-font-weight: bold; -fx-font-family: 'Arial Black', 'Impact', sans-serif;");
+        
+        // Choose color based on whether it's a combo
+        Color textColor = isCombo ? Color.web("#FF10F0") : Color.web("#00FFFF"); // Pink for combo, cyan for normal
+        score.setTextFill(textColor);
+        
+        // Clearer, less intense glow effect
+        DropShadow glow = new DropShadow();
+        glow.setColor(textColor);
+        glow.setRadius(12);
+        glow.setSpread(0.4);
         score.setEffect(glow);
-        score.setTextFill(Color.WHITE);
+        
+        // Better text rendering
+        score.setCache(true);
+        
         setCenter(score);
-
     }
 
     public void showScore(ObservableList<Node> list) {
-        FadeTransition ft = new FadeTransition(Duration.millis(2000), this);
-        TranslateTransition tt = new TranslateTransition(Duration.millis(2500), this);
-        tt.setToY(this.getLayoutY() - 40);
+        // Scale animation - start big and shrink slightly
+        ScaleTransition st = new ScaleTransition(Duration.millis(300), this);
+        st.setFromX(1.5);
+        st.setFromY(1.5);
+        st.setToX(1.0);
+        st.setToY(1.0);
+        
+        // Fade out
+        FadeTransition ft = new FadeTransition(Duration.millis(1500), this);
         ft.setFromValue(1);
         ft.setToValue(0);
-        ParallelTransition transition = new ParallelTransition(tt, ft);
+        ft.setDelay(Duration.millis(500));
+        
+        // Float up
+        TranslateTransition tt = new TranslateTransition(Duration.millis(2000), this);
+        tt.setToY(this.getLayoutY() - 60);
+        
+        ParallelTransition transition = new ParallelTransition(st, tt, ft);
         transition.setOnFinished(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {

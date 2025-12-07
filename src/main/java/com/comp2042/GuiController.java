@@ -45,6 +45,7 @@ public class GuiController implements Initializable {
     @FXML private Label scoreLabel;
     @FXML private Label levelLabel;
     @FXML private Label highScoreLabel;
+    @FXML private Label comboLabel;
 
     private Rectangle[][] displayMatrix;
     private Rectangle[][] rectangles;
@@ -88,11 +89,6 @@ public class GuiController implements Initializable {
                     }
                     if (keyEvent.getCode() == KeyCode.SPACE) {
                         DownData downData = eventListener.onHardDropEvent(new MoveEvent(EventType.HARD_DROP, EventSource.USER));
-                        if (downData.getClearRow() != null && downData.getClearRow().getLinesRemoved() > 0) {
-                            NotificationPanel notificationPanel = new NotificationPanel("+" + downData.getClearRow().getScoreBonus());
-                            groupNotification.getChildren().add(notificationPanel);
-                            notificationPanel.showScore(groupNotification.getChildren());
-                        }
                         updateViews(downData.getViewData());
                         keyEvent.consume();
                     }
@@ -370,11 +366,6 @@ public class GuiController implements Initializable {
     private void moveDown(MoveEvent event) {
         if (!isPause.get()) {
             DownData downData = eventListener.onDownEvent(event);
-            if (downData.getClearRow() != null && downData.getClearRow().getLinesRemoved() > 0) {
-                NotificationPanel notificationPanel = new NotificationPanel("+" + downData.getClearRow().getScoreBonus());
-                groupNotification.getChildren().add(notificationPanel);
-                notificationPanel.showScore(groupNotification.getChildren());
-            }
             updateViews(downData.getViewData());
         }
         gamePanel.requestFocus();
@@ -391,6 +382,25 @@ public class GuiController implements Initializable {
     public void setLevel(int level) {
         if (levelLabel != null) {
             levelLabel.setText(String.valueOf(level));
+        }
+    }
+
+    public void setCombo(int combo) {
+        if (comboLabel != null) {
+            if (combo > 0) {
+                comboLabel.setText("x" + (combo + 1));
+            } else {
+                comboLabel.setText("");
+            }
+        }
+    }
+
+    public void showScoreNotification(int score, boolean isCombo) {
+        if (groupNotification != null) {
+            String text = isCombo ? "COMBO!\n+" + score : "+" + score;
+            NotificationPanel notificationPanel = new NotificationPanel(text, isCombo);
+            groupNotification.getChildren().add(notificationPanel);
+            notificationPanel.showScore(groupNotification.getChildren());
         }
     }
 
@@ -473,7 +483,7 @@ public class GuiController implements Initializable {
             return;
         }
         
-        // Flash the cleared rows white for visual effect
+        // Phase 1: Flash white
         for (int rowIndex : rowIndices) {
             if (rowIndex >= 2 && rowIndex < displayMatrix.length) {
                 for (int j = 0; j < displayMatrix[rowIndex].length; j++) {
@@ -482,14 +492,45 @@ public class GuiController implements Initializable {
             }
         }
         
-        // Use a short timeline to restore and execute callback
-        Timeline flashTimeline = new Timeline(new KeyFrame(
-            Duration.millis(200),
-            e -> {
-                if (callback != null) callback.run();
+        // Phase 2: Swish effect - fade and slide out
+        Timeline swishTimeline = new Timeline();
+        swishTimeline.getKeyFrames().add(new KeyFrame(Duration.millis(150), e -> {
+            for (int rowIndex : rowIndices) {
+                if (rowIndex >= 2 && rowIndex < displayMatrix.length) {
+                    for (int j = 0; j < displayMatrix[rowIndex].length; j++) {
+                        Rectangle rect = displayMatrix[rowIndex][j];
+                        // Fade to cyan with glow
+                        rect.setFill(Color.web("#00FFFF"));
+                        rect.setOpacity(0.7);
+                    }
+                }
             }
-        ));
-        flashTimeline.setCycleCount(1);
-        flashTimeline.play();
+        }));
+        
+        swishTimeline.getKeyFrames().add(new KeyFrame(Duration.millis(300), e -> {
+            for (int rowIndex : rowIndices) {
+                if (rowIndex >= 2 && rowIndex < displayMatrix.length) {
+                    for (int j = 0; j < displayMatrix[rowIndex].length; j++) {
+                        Rectangle rect = displayMatrix[rowIndex][j];
+                        rect.setOpacity(0.3);
+                    }
+                }
+            }
+        }));
+        
+        swishTimeline.getKeyFrames().add(new KeyFrame(Duration.millis(400), e -> {
+            // Reset opacity and execute callback
+            for (int rowIndex : rowIndices) {
+                if (rowIndex >= 2 && rowIndex < displayMatrix.length) {
+                    for (int j = 0; j < displayMatrix[rowIndex].length; j++) {
+                        displayMatrix[rowIndex][j].setOpacity(1.0);
+                    }
+                }
+            }
+            if (callback != null) callback.run();
+        }));
+        
+        swishTimeline.setCycleCount(1);
+        swishTimeline.play();
     }
 }
