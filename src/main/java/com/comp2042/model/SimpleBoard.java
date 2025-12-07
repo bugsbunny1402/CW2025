@@ -58,6 +58,7 @@ public class SimpleBoard implements Board {
         return ghostOffset;
     }
 
+    @Override
     public int getCurrentLevel() {
         return currentLevel;
     }
@@ -69,6 +70,7 @@ public class SimpleBoard implements Board {
     /**
      * Swaps the current brick with the held brick.
      */
+    @Override
     public void swapHoldBrick() {
         if (hasHeldThisTurn) return;
 

@@ -37,6 +37,9 @@ import java.util.ResourceBundle;
 public class GuiController implements Initializable {
 
     private static final int BRICK_SIZE = 20;
+    
+    // Animation manager for visual effects
+    private final AnimationManager animationManager = new AnimationManager();
 
     @FXML private GridPane gamePanel;
     @FXML private Group groupNotification;
@@ -486,62 +489,11 @@ public class GuiController implements Initializable {
         }
     }
 
+    /**
+     * Delegates line clear animation to AnimationManager.
+     * Keeps GuiController focused on input/output rather than animation details.
+     */
     public void animateLineClear(java.util.List<Integer> rowIndices, Runnable callback) {
-        if (rowIndices == null || rowIndices.isEmpty()) {
-            if (callback != null) callback.run();
-            return;
-        }
-        
-        // Phase 1: Flash white
-        for (int rowIndex : rowIndices) {
-            if (rowIndex >= 2 && rowIndex < displayMatrix.length) {
-                for (int j = 0; j < displayMatrix[rowIndex].length; j++) {
-                    displayMatrix[rowIndex][j].setFill(Color.WHITE);
-                }
-            }
-        }
-        
-        // Phase 2: Swish effect - transition to cyan glow and fade
-        Timeline swishTimeline = new Timeline();
-        
-        // Step 1: White → Cyan (150ms)
-        swishTimeline.getKeyFrames().add(new KeyFrame(Duration.millis(150), e -> {
-            for (int rowIndex : rowIndices) {
-                if (rowIndex >= 2 && rowIndex < displayMatrix.length) {
-                    for (int j = 0; j < displayMatrix[rowIndex].length; j++) {
-                        Rectangle rect = displayMatrix[rowIndex][j];
-                        rect.setFill(Color.web("#00FFFF")); // Cyan glow
-                        rect.setOpacity(0.7);
-                    }
-                }
-            }
-        }));
-        
-        // Step 2: Fade more (300ms)
-        swishTimeline.getKeyFrames().add(new KeyFrame(Duration.millis(300), e -> {
-            for (int rowIndex : rowIndices) {
-                if (rowIndex >= 2 && rowIndex < displayMatrix.length) {
-                    for (int j = 0; j < displayMatrix[rowIndex].length; j++) {
-                        displayMatrix[rowIndex][j].setOpacity(0.3);
-                    }
-                }
-            }
-        }));
-        
-        // Step 3: Complete - reset opacity and call callback (400ms)
-        swishTimeline.getKeyFrames().add(new KeyFrame(Duration.millis(400), e -> {
-            // Reset opacity for all rows
-            for (int rowIndex : rowIndices) {
-                if (rowIndex >= 2 && rowIndex < displayMatrix.length) {
-                    for (int j = 0; j < displayMatrix[rowIndex].length; j++) {
-                        displayMatrix[rowIndex][j].setOpacity(1.0);
-                    }
-                }
-            }
-            if (callback != null) callback.run();
-        }));
-        
-        swishTimeline.setCycleCount(1);
-        swishTimeline.play();
+        animationManager.animateLineClear(displayMatrix, rowIndices, callback);
     }
 }

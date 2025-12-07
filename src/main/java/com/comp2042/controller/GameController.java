@@ -150,9 +150,7 @@ public class GameController implements InputEventListener {
 
     @Override
     public ViewData onHoldEvent(MoveEvent event) {
-        if (board instanceof SimpleBoard) {
-            ((SimpleBoard) board).swapHoldBrick();
-        }
+        board.swapHoldBrick();
         return board.getViewData();
     }
 
@@ -168,14 +166,12 @@ public class GameController implements InputEventListener {
     }
 
     private void updateLevelAndSpeed() {
-        if (board instanceof SimpleBoard) {
-            int currentLevel = ((SimpleBoard) board).getCurrentLevel();
-            viewGuiController.setLevel(currentLevel);
+        int currentLevel = board.getCurrentLevel();
+        viewGuiController.setLevel(currentLevel);
 
-            // Calculate new speed: Base 400ms, faster by 30ms per level, capped at 100ms
-            long newSpeed = 400 - ((long) (currentLevel - 1) * 30);
-            newSpeed = Math.max(newSpeed, 100);
-            viewGuiController.setGameSpeed(newSpeed);
-        }
+        // Calculate new speed: Base 400ms, faster by 30ms per level, capped at 100ms
+        long newSpeed = 400 - ((long) (currentLevel - 1) * 30);
+        newSpeed = Math.max(newSpeed, 100);
+        viewGuiController.setGameSpeed(newSpeed);
     }
 }

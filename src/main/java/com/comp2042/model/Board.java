@@ -63,4 +63,15 @@ public interface Board {
      * Starts a new game.
      */
     void newGame();
+    
+    /**
+     * Gets the current level of the game.
+     * @return The current level (starts at 1).
+     */
+    int getCurrentLevel();
+    
+    /**
+     * Swaps the current brick with the held brick (if hold mechanic is supported).
+     */
+    void swapHoldBrick();
 }
