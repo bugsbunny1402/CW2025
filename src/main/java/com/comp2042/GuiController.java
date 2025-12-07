@@ -23,7 +23,6 @@ import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
 import java.net.URL;
-import java.util.List;
 import java.util.ResourceBundle;
 
 public class GuiController implements Initializable {
@@ -33,14 +32,14 @@ public class GuiController implements Initializable {
     @FXML private GridPane gamePanel;
     @FXML private Group groupNotification;
     @FXML private GridPane brickPanel;
-    private GridPane ghostPanel; // Ghost piece panel (created programmatically)
+    @FXML private GridPane ghostPanel; // Added Ghost Panel
 
     // Preview Panels
     @FXML private GridPane nextBrickPanel;
-    @FXML private GridPane holdBrickPanel;
+    @FXML private GridPane holdBrickPanel; // Added Hold Panel
 
     @FXML private GameOverPanel gameOverPanel;
-    @FXML private StackPane pauseMenu; 
+    @FXML private StackPane pauseMenu; // Added Pause Overlay
 
     // Labels
     @FXML private Label scoreLabel;
@@ -49,7 +48,7 @@ public class GuiController implements Initializable {
 
     private Rectangle[][] displayMatrix;
     private Rectangle[][] rectangles;
-    private Rectangle[][] ghostRectangles; // Ghost piece rectangles
+    private Rectangle[][] ghostRectangles; // Added Ghost Display
     private Rectangle[][] nextBrickDisplay;
     private Rectangle[][] holdBrickDisplay; // Added Hold Display
 
@@ -61,21 +60,7 @@ public class GuiController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // Create ghostPanel programmatically
-        ghostPanel = new GridPane();
-        ghostPanel.setHgap(1);
-        ghostPanel.setVgap(1);
-        ghostPanel.setLayoutX(125.0);
-        ghostPanel.setLayoutY(30.0);
-        ghostPanel.setMouseTransparent(true);
-        
-        // Add ghostPanel to the parent pane (behind brickPanel)
-        if (brickPanel != null && brickPanel.getParent() instanceof javafx.scene.layout.Pane) {
-            javafx.scene.layout.Pane parentPane = (javafx.scene.layout.Pane) brickPanel.getParent();
-            int brickPanelIndex = parentPane.getChildren().indexOf(brickPanel);
-            parentPane.getChildren().add(brickPanelIndex, ghostPanel);
-        }
-        
+        // Font loading removed (Using system fonts for neon look)
         gamePanel.setFocusTraversable(true);
         gamePanel.requestFocus();
 
@@ -165,14 +150,14 @@ public class GuiController implements Initializable {
             }
         }
 
-        // Initialize ghost panel
-        ghostRectangles = new Rectangle[brick.getBrickData().length][brick.getBrickData()[0].length];
-        for (int i = 0; i < brick.getBrickData().length; i++) {
-            for (int j = 0; j < brick.getBrickData()[i].length; j++) {
-                Rectangle rectangle = new Rectangle(BRICK_SIZE, BRICK_SIZE);
-                rectangle.setFill(Color.TRANSPARENT);
-                ghostRectangles[i][j] = rectangle;
-                if (ghostPanel != null) {
+        // Initialize Ghost Panel (if available)
+        if (ghostPanel != null) {
+            ghostRectangles = new Rectangle[brick.getBrickData().length][brick.getBrickData()[0].length];
+            for (int i = 0; i < brick.getBrickData().length; i++) {
+                for (int j = 0; j < brick.getBrickData()[i].length; j++) {
+                    Rectangle rectangle = new Rectangle(BRICK_SIZE, BRICK_SIZE);
+                    rectangle.setFill(Color.TRANSPARENT);
+                    ghostRectangles[i][j] = rectangle;
                     ghostPanel.add(rectangle, j, i);
                 }
             }
@@ -180,8 +165,9 @@ public class GuiController implements Initializable {
 
         // Initial positioning
         updateBrickPanelPosition(brick);
-        updateGhostPanelPosition(brick);
-        refreshGhostPiece(brick);
+        if (ghostPanel != null) {
+            updateGhostPanelPosition(brick);
+        }
 
         // Initial Previews
         refreshNextBrick(brick.getNextBrickData());
@@ -215,7 +201,13 @@ public class GuiController implements Initializable {
     private void refreshBrick(ViewData brick) {
         if (!isPause.get()) {
             updateBrickPanelPosition(brick);
+            if (ghostPanel != null && ghostRectangles != null) {
+                updateGhostPanelPosition(brick);
+            }
+            
             int[][] currentBrickData = brick.getBrickData();
+            
+            // Clear and update current brick rectangles
             for (int i = 0; i < rectangles.length; i++) {
                 for (int j = 0; j < rectangles[i].length; j++) {
                     setRectangleData(0, rectangles[i][j]);
@@ -227,9 +219,19 @@ public class GuiController implements Initializable {
                 }
             }
             
-            // Update ghost piece
-            updateGhostPanelPosition(brick);
-            refreshGhostPiece(brick);
+            // Clear and update ghost rectangles with semi-transparent version (if available)
+            if (ghostPanel != null && ghostRectangles != null) {
+                for (int i = 0; i < ghostRectangles.length; i++) {
+                    for (int j = 0; j < ghostRectangles[i].length; j++) {
+                        setGhostRectangleData(0, ghostRectangles[i][j]);
+                    }
+                }
+                for (int i = 0; i < currentBrickData.length; i++) {
+                    for (int j = 0; j < currentBrickData[i].length; j++) {
+                        setGhostRectangleData(currentBrickData[i][j], ghostRectangles[i][j]);
+                    }
+                }
+            }
         }
     }
     /**
@@ -251,162 +253,22 @@ public class GuiController implements Initializable {
     }
 
     /**
-     * Updates the layout position of the ghost piece panel.
+     * Updates the layout position of the ghost panel (shows where the brick will land).
      */
     private void updateGhostPanelPosition(ViewData brick) {
         if (ghostPanel == null) return;
         
+        // Base X must match the FXML layoutX of the gameBoard (125)
         double baseX = 125.0;
+        // Base Y must match the FXML layoutY of the gameBoard (30)
         double baseY = 30.0;
 
+        // Calculate offsets based on the ghost coordinates (Cell Size 20 + 1px Gap)
         double xOffset = brick.getGhostX() * (BRICK_SIZE + 1);
-        double yOffset = (brick.getGhostY() - 2) * (BRICK_SIZE + 1);
+        double yOffset = (brick.getGhostY() - 2) * (BRICK_SIZE + 1); // -2 to account for hidden rows
 
         ghostPanel.setLayoutX(baseX + xOffset);
         ghostPanel.setLayoutY(baseY + yOffset);
-    }
-
-    /**
-     * Refreshes the ghost piece rectangles with semi-transparent appearance.
-     * The ghost uses the same color as the piece but with reduced opacity.
-     */
-    private void refreshGhostPiece(ViewData brick) {
-        if (ghostPanel == null || ghostRectangles == null) return;
-        
-        int[][] currentBrickData = brick.getBrickData();
-        for (int i = 0; i < ghostRectangles.length; i++) {
-            for (int j = 0; j < ghostRectangles[i].length; j++) {
-                if (i < currentBrickData.length && j < currentBrickData[i].length && currentBrickData[i][j] != 0) {
-                    // Get the original color of the piece
-                    Paint originalColor = getFillColor(currentBrickData[i][j]);
-                    
-                    // Make it semi-transparent for ghost effect
-                    if (originalColor instanceof Color) {
-                        Color color = (Color) originalColor;
-                        // Use the same color but with 25% opacity for fill and 40% for border
-                        ghostRectangles[i][j].setFill(Color.rgb(
-                            (int)(color.getRed() * 255),
-                            (int)(color.getGreen() * 255),
-                            (int)(color.getBlue() * 255),
-                            0.25  // 25% opacity
-                        ));
-                        ghostRectangles[i][j].setStroke(Color.rgb(
-                            (int)(color.getRed() * 255),
-                            (int)(color.getGreen() * 255),
-                            (int)(color.getBlue() * 255),
-                            0.4  // 40% opacity for border
-                        ));
-                        ghostRectangles[i][j].setStrokeWidth(1.5);
-                        ghostRectangles[i][j].setArcHeight(5);
-                        ghostRectangles[i][j].setArcWidth(5);
-                    }
-                } else {
-                    ghostRectangles[i][j].setFill(Color.TRANSPARENT);
-                    ghostRectangles[i][j].setStroke(null);
-                }
-            }
-        }
-    }
-
-    /**
-     * Animates line clearing with flash effects before removing them.
-     * Creates a visually appealing sequence:
-     * 1. Flash white 3 times
-     * 2. Fade out
-     * 3. Update the board
-     */
-    public void animateLineClear(List<Integer> clearedRowIndices, Runnable onComplete) {
-        if (clearedRowIndices == null || clearedRowIndices.isEmpty()) {
-            onComplete.run();
-            return;
-        }
-        
-        // Store original colors
-        final int[][] originalColors = new int[clearedRowIndices.size()][];
-        for (int idx = 0; idx < clearedRowIndices.size(); idx++) {
-            int rowIndex = clearedRowIndices.get(idx);
-            if (rowIndex >= 2 && rowIndex < displayMatrix.length) {
-                originalColors[idx] = new int[displayMatrix[rowIndex].length];
-                for (int j = 0; j < displayMatrix[rowIndex].length; j++) {
-                    // Store color value (1-7)
-                    Paint fill = displayMatrix[rowIndex][j].getFill();
-                    originalColors[idx][j] = getColorIndex(fill);
-                }
-            }
-        }
-        
-        // Flash animation: 3 flashes at 100ms intervals
-        final int[] flashCount = {0};
-        final Timeline flashTimeline = new Timeline();
-        
-        for (int flash = 0; flash < 6; flash++) { // 3 flashes = 6 toggles (on/off)
-            final boolean isWhite = (flash % 2 == 0);
-            KeyFrame keyFrame = new KeyFrame(
-                Duration.millis(flash * 80),
-                e -> {
-                    for (int idx = 0; idx < clearedRowIndices.size(); idx++) {
-                        int rowIndex = clearedRowIndices.get(idx);
-                        if (rowIndex >= 2 && rowIndex < displayMatrix.length) {
-                            for (int j = 0; j < displayMatrix[rowIndex].length; j++) {
-                                if (isWhite) {
-                                    // Flash white
-                                    displayMatrix[rowIndex][j].setFill(Color.WHITE);
-                                } else {
-                                    // Restore original color
-                                    setRectangleData(originalColors[idx][j], displayMatrix[rowIndex][j]);
-                                }
-                            }
-                        }
-                    }
-                }
-            );
-            flashTimeline.getKeyFrames().add(keyFrame);
-        }
-        
-        // Fade out animation
-        KeyFrame fadeKeyFrame = new KeyFrame(
-            Duration.millis(480), // After flashing
-            e -> {
-                for (int idx = 0; idx < clearedRowIndices.size(); idx++) {
-                    int rowIndex = clearedRowIndices.get(idx);
-                    if (rowIndex >= 2 && rowIndex < displayMatrix.length) {
-                        for (int j = 0; j < displayMatrix[rowIndex].length; j++) {
-                            // Fade to transparent
-                            displayMatrix[rowIndex][j].setFill(Color.rgb(255, 255, 255, 0.3));
-                        }
-                    }
-                }
-            }
-        );
-        flashTimeline.getKeyFrames().add(fadeKeyFrame);
-        
-        // Final clear - call the completion callback
-        KeyFrame clearKeyFrame = new KeyFrame(
-            Duration.millis(600), // Total animation duration
-            e -> onComplete.run()
-        );
-        flashTimeline.getKeyFrames().add(clearKeyFrame);
-        
-        flashTimeline.play();
-    }
-    
-    /**
-     * Helper to get color index from Paint for animation
-     */
-    private int getColorIndex(Paint paint) {
-        if (!(paint instanceof Color)) return 0;
-        Color c = (Color) paint;
-        
-        // Match colors to their indices (based on getFillColor method)
-        if (c.equals(Color.web("#00FFFF"))) return 1; // Cyan
-        if (c.equals(Color.web("#B026FF"))) return 2; // Purple
-        if (c.equals(Color.web("#39FF14"))) return 3; // Green
-        if (c.equals(Color.web("#FFFF00"))) return 4; // Yellow
-        if (c.equals(Color.web("#FF3131"))) return 5; // Red
-        if (c.equals(Color.web("#1F51FF"))) return 6; // Blue
-        if (c.equals(Color.web("#FF10F0"))) return 7; // Pink
-        
-        return 0; // Transparent
     }
 
     // Generic helper to update all views at once
@@ -479,6 +341,28 @@ public class GuiController implements Initializable {
             glow.setColor(((Color) fill).brighter());
             glow.setRadius(15);
             glow.setSpread(0.25);
+            rectangle.setEffect(glow);
+        }
+    }
+
+    // GHOST PIECE STYLING (semi-transparent with subtle glow)
+    private void setGhostRectangleData(int color, Rectangle rectangle) {
+        if (color == 0) {
+            rectangle.setFill(Color.TRANSPARENT);
+            rectangle.setEffect(null);
+        } else {
+            Paint fill = getFillColor(color);
+            // Make it semi-transparent (30% opacity)
+            Color ghostColor = ((Color) fill).deriveColor(0, 1, 1, 0.3);
+            rectangle.setFill(ghostColor);
+            rectangle.setArcHeight(5);
+            rectangle.setArcWidth(5);
+            
+            // Add subtle glow effect
+            DropShadow glow = new DropShadow();
+            glow.setColor(((Color) fill).deriveColor(0, 1, 1, 0.5));
+            glow.setRadius(10);
+            glow.setSpread(0.15);
             rectangle.setEffect(glow);
         }
     }
@@ -572,5 +456,40 @@ public class GuiController implements Initializable {
 
     public void pauseGame(ActionEvent actionEvent) {
         togglePause();
+    }
+
+    public void resumeGame(ActionEvent actionEvent) {
+        if (isPause.get()) {
+            if (timeLine != null) timeLine.play();
+            isPause.set(false);
+            if (pauseMenu != null) pauseMenu.setVisible(false);
+            gamePanel.requestFocus();
+        }
+    }
+
+    public void animateLineClear(java.util.List<Integer> rowIndices, Runnable callback) {
+        if (rowIndices == null || rowIndices.isEmpty()) {
+            if (callback != null) callback.run();
+            return;
+        }
+        
+        // Flash the cleared rows white for visual effect
+        for (int rowIndex : rowIndices) {
+            if (rowIndex >= 2 && rowIndex < displayMatrix.length) {
+                for (int j = 0; j < displayMatrix[rowIndex].length; j++) {
+                    displayMatrix[rowIndex][j].setFill(Color.WHITE);
+                }
+            }
+        }
+        
+        // Use a short timeline to restore and execute callback
+        Timeline flashTimeline = new Timeline(new KeyFrame(
+            Duration.millis(200),
+            e -> {
+                if (callback != null) callback.run();
+            }
+        ));
+        flashTimeline.setCycleCount(1);
+        flashTimeline.play();
     }
 }

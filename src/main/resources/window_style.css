@@ -88,12 +88,12 @@
     -fx-font-family: "Arial Black", "Impact", sans-serif;
     -fx-font-size: 80px;
     -fx-fill: white;
-    -fx-effect: dropshadow(three-pass-dow, rgba(0, 255. 255, 0.8), 20, 0.5, 0, 0);
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 255, 255, 0.8), 20, 0.5, 0, 0);
 }
 
 .menuButton {
     -fx-background-color: transparent;
-    -fx-border-color: #00FFFF
+    -fx-border-color: #00FFFF;
     -fx-border-width: 3px;
     -fx-border-radius: 10px;
     -fx-text-fill: #00FFFF;
@@ -109,8 +109,58 @@
     -fx-background-color: rgba(0, 255, 255, 0.1);
     -fx-effect: dropshadow(three-pass-box, rgba(0, 255, 255, 0.8), 20, 0.5, 0, 0);
 }
-
 .menuButton:pressed {
     -fx-background-color: #00FFFF;
     -fx-text-fill: black;
+}
+
+/* Pause Menu Styles */
+.pauseBackground {
+    -fx-background-color: rgba(0, 0, 0, 0.85);
+    -fx-border-color: #00FFFF;
+    -fx-border-width: 3px;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 255, 255, 0.6), 20, 0.5, 0, 0);
+}
+
+.pauseTitle {
+    -fx-font-family: "Arial Black", "Impact", sans-serif;
+    -fx-font-size: 36px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #00FFFF;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 255, 255, 0.8), 25, 0.8, 0, 0);
+}
+
+.pauseInstruction {
+    -fx-font-family: "Courier New", monospace;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #FFFFFF;
+    -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.5), 8, 0.5, 0, 0);
+}
+
+.pauseButton {
+    -fx-background-color: transparent;
+    -fx-border-color: #00FFFF;
+    -fx-border-width: 2px;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-text-fill: #00FFFF;
+    -fx-font-family: "Arial Black", sans-serif;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 20 12 20;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 255, 255, 0.4), 10, 0, 0, 0);
+}
+
+.pauseButton:hover {
+    -fx-background-color: rgba(0, 255, 255, 0.2);
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 255, 255, 0.8), 15, 0.5, 0, 0);
+}
+
+.pauseButton:pressed {
+    -fx-background-color: #00FFFF;
+    -fx-text-fill: #000000;
 }
