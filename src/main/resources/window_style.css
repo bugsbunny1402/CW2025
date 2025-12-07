@@ -84,6 +84,14 @@
     -fx-effect: dropshadow(three-pass-box, rgba(255, 255, 255, 0.5), 10, 0, 0, 0);
 }
 
+.comboValue {
+    -fx-font-family: "Arial Black", sans-serif;
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #FF10F0;
+    -fx-effect: dropshadow(three-pass-box, rgba(255, 16, 240, 0.8), 15, 0.5, 0, 0);
+}
+
 .menuTitle {
     -fx-font-family: "Arial Black", "Impact", sans-serif;
     -fx-font-size: 80px;

@@ -49,6 +49,11 @@
             <Label fx:id="levelLabel" text="1" styleClass="scoreValue"/>
         </VBox>
 
+        <VBox spacing="5" alignment="CENTER">
+            <Label text="COMBO" styleClass="scoreTitle"/>
+            <Label fx:id="comboLabel" text="" styleClass="comboValue"/>
+        </VBox>
+
     </VBox>
 
     <StackPane fx:id="pauseMenu" visible="false" layoutX="155.0" layoutY="30.0" prefWidth="210" prefHeight="483" styleClass="pauseBackground">
