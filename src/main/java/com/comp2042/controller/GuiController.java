@@ -459,6 +459,11 @@ public class GuiController implements Initializable {
 
         // Reset Views
         refreshHoldBrick(null);
+        
+        // IMPORTANT: Restart the game timeline!
+        if (timeLine != null) {
+            timeLine.play();
+        }
     }
 
     private void togglePause() {
