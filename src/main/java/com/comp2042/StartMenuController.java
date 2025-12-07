@@ -24,7 +24,7 @@ public class StartMenuController {
 
             // Switch the Scene
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            Scene scene = new Scene(root, 450, 510);
+            Scene scene = new Scene(root, 520, 580);
 
             // Ensure focus is on the game panel so keys work immediately
             root.requestFocus();

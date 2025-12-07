@@ -239,10 +239,10 @@ public class GuiController implements Initializable {
      * Adjusted for StackPane alignment (bricks move relative to the game board).
      */
     private void updateBrickPanelPosition(ViewData brick) {
-        // Base X must match the FXML layoutX of the gameBoard (125)
-        double baseX = 125.0;
-        // Base Y must match the FXML layoutY of the gameBoard (30)
-        double baseY = 30.0;
+        // Base X must match the FXML layoutX of the gameBoard (155) + border width (3)
+        double baseX = 155.0 + 3.0;
+        // Base Y must match the FXML layoutY of the gameBoard (30) + border width (3)
+        double baseY = 30.0 + 3.0;
 
         // Calculate offsets based on the grid coordinates (Cell Size 20 + 1px Gap)
         double xOffset = brick.getxPosition() * (BRICK_SIZE + 1);
@@ -258,10 +258,10 @@ public class GuiController implements Initializable {
     private void updateGhostPanelPosition(ViewData brick) {
         if (ghostPanel == null) return;
         
-        // Base X must match the FXML layoutX of the gameBoard (125)
-        double baseX = 125.0;
-        // Base Y must match the FXML layoutY of the gameBoard (30)
-        double baseY = 30.0;
+        // Base X must match the FXML layoutX of the gameBoard (155) + border width (3)
+        double baseX = 155.0 + 3.0;
+        // Base Y must match the FXML layoutY of the gameBoard (30) + border width (3)
+        double baseY = 30.0 + 3.0;
 
         // Calculate offsets based on the ghost coordinates (Cell Size 20 + 1px Gap)
         double xOffset = brick.getGhostX() * (BRICK_SIZE + 1);
