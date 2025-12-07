@@ -32,10 +32,12 @@ public class GameOverPanel extends BorderPane {
         container.getStyleClass().add("gameOverContainer");
         container.getChildren().addAll(gameOverLabel, subtitle);
         
-        // Center the container
+        // Center the container - make it wider to fit text
         setCenter(container);
-        setMaxWidth(400);
-        setMaxHeight(300);
+        setMinWidth(500);
+        setMinHeight(250);
+        setPrefWidth(500);
+        setPrefHeight(250);
         
         // Add pulsing glow animation
         pulseAnimation = createPulseAnimation();
