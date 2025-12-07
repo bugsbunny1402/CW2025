@@ -66,11 +66,35 @@
     -fx-font-weight: bold;
 }
 
+/* Game Over Panel - Horizontal Design with Pink/Magenta Glow */
+.game-over-panel {
+    -fx-background-color: rgba(40, 10, 40, 0.96);
+    -fx-border-color: #FF1493;
+    -fx-border-width: 6px;
+    -fx-border-radius: 25px;
+    -fx-background-radius: 25px;
+    -fx-effect: dropshadow(three-pass-box, rgba(255, 20, 147, 1.0), 40, 0.98, 0, 0);
+    -fx-padding: 25 35 25 35;
+}
+
+/* Main GAME OVER text - Pink to Cyan Gradient */
 .gameOverStyle {
-    -fx-font-family: "Arial Black", sans-serif;
-    -fx-font-size: 40px;
-    -fx-text-fill: #FF3131;
-    -fx-effect: dropshadow(gaussian, black, 5, 0.5, 0, 0);
+    -fx-font-family: "Impact", "Arial Black", sans-serif;
+    -fx-font-size: 62px;
+    -fx-font-weight: bold;
+    -fx-text-fill: linear-gradient(to bottom, #FF1493, #FF69B4, #87CEEB, #00CED1);
+    -fx-effect: dropshadow(three-pass-box, #FF1493, 15, 0.9, 0, 2);
+    -fx-padding: 0;
+}
+
+/* Instruction text - Cyan/Green Color */
+.gameOverInstruction {
+    -fx-font-family: "Courier New", "Consolas", monospace;
+    -fx-font-size: 13px;
+    -fx-font-weight: normal;
+    -fx-text-fill: #00CED1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 206, 209, 0.8), 6, 0.7, 0, 0);
+    -fx-padding: 0;
 }
 
 .scoreClass {

@@ -450,12 +450,15 @@ public class GuiController implements Initializable {
     public void newGame(ActionEvent actionEvent) {
         if (timeLine != null) timeLine.stop();
         gameOverPanel.setVisible(false);
-        eventListener.createNewGame();
-        gamePanel.requestFocus();
-
+        
+        // Reset game state flags BEFORE creating new game
         isPause.set(false);
         isGameOver.set(false);
         if (pauseMenu != null) pauseMenu.setVisible(false);
+        
+        // Now create the new game (this will start the timeline)
+        eventListener.createNewGame();
+        gamePanel.requestFocus();
 
         // Reset Views
         refreshHoldBrick(null);

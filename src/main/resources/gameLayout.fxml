@@ -66,11 +66,10 @@
         </VBox>
     </StackPane>
 
-    <Group fx:id="groupNotification" layoutX="155.0" layoutY="200.0">
-        <VBox alignment="CENTER">
-            <GameOverPanel fx:id="gameOverPanel"/>
-        </VBox>
-    </Group>
+    <GameOverPanel fx:id="gameOverPanel" layoutX="50.0" layoutY="195.0" prefWidth="420" prefHeight="140" visible="false"/>
+    
+    <Group fx:id="groupNotification" layoutX="155.0" layoutY="200.0" mouseTransparent="true"/>
+
 
     <stylesheets>
         <URL value="@window_style.css"/>
