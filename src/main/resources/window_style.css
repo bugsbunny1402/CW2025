@@ -1,5 +1,9 @@
 .root {
     -fx-background-color: #121212;
+    -fx-background-image: url('background_image.png');
+    -fx-background-size: cover;
+    -fx-background-position: center center;
+    -fx-background-repeat: no-repeat;
 }
 
 .nextBrick {
