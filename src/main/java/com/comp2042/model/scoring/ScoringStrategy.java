@@ -14,7 +14,6 @@ package com.comp2042.model.scoring;
  * 
  * @see StandardScoringStrategy
  * @see AggressiveScoringStrategy
- * @see Score
  */
 public interface ScoringStrategy {
     
